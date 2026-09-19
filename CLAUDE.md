@@ -4,11 +4,30 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 
 ## Project state
 
-This repository is currently an empty scaffold — no source code has been added yet. It contains only IDE metadata (`.idea/`, `lexic-on.iml`) and a `.gitignore`.
+lexic.on is past the empty-scaffold stage, but no vertical feature slice has shipped end-to-end yet — see `docs/roadmap.md` for the current slice-by-slice status and `docs/decisions.md` for the full architecture/decisions history and rationale.
 
-The `.gitignore` indicates the intended project layout:
+Currently in place: a Spring Boot backend scaffold (Spring Security/OAuth2-client/Flyway/Lombok dependencies added, a `SecurityConfig` stub not yet wired to a real login flow), a default Vite+React frontend template (no real UI yet), and a working CI/CD pipeline (GitHub Actions → Docker Hub → Render). No database entities, migrations, or real REST endpoints exist yet.
 
-- `backend/` — a Java project (ignored `backend/target` implies Maven or Gradle). `backend/src/main/resources/static` is ignored, suggesting the backend (likely Spring Boot) will serve the built frontend as static resources.
-- `frontend/` — a Node.js project (ignored `node_modules`, `dist`, `dist-ssr` implies a Vite-based build).
+## Commands
 
-Neither directory exists yet, so there are no build, lint, or test commands to document. Once code is added, update this file with the actual commands (e.g., Maven/Gradle wrapper commands for `backend/`, npm/yarn/pnpm scripts for `frontend/`) and describe how the backend and frontend interact (API routes, dev proxy setup, build integration).
+### Backend (`backend/`)
+
+- Run locally: `./mvnw spring-boot:run` (`mvnw.cmd` on Windows)
+- Build: `./mvnw package`
+- Test: `./mvnw test`
+
+Local runs need `DB_URL`, `DB_USER`, `DB_PASSWORD` for a real Postgres connection (e.g. a free Neon project) — set as environment variables, or in a gitignored `backend/src/main/resources/application-local.properties` (picked up automatically via `spring.config.import`, see `application.properties`). Tests don't need any of this — they run against an in-memory H2 database instead (`backend/src/test/resources/application.properties`), which is an explicitly temporary stand-in (see that file's comment) until real Flyway migrations exist and/or the project switches to Testcontainers.
+
+### Frontend (`frontend/`)
+
+- Install: `npm install`
+- Dev server: `npm run dev`
+- Build: `npm run build`
+- Lint: `npm run lint`
+
+## Architecture
+
+- **Backend:** Java 25, Spring Boot, Spring Data JPA/Hibernate, Flyway migrations, Spring Security + OAuth2, PostgreSQL (hosted on Neon).
+- **Frontend:** React + TypeScript + Vite, built to static files.
+- **Integration:** in production, the frontend build output is copied into `backend/src/main/resources/static` and served by the same Spring Boot app as one deployable unit (`docs/decisions.md` section 29) — this is also how `.github/workflows/deploy.yml` wires the two builds together before packaging and pushing to Render.
+- Full architecture rationale and decision history: `docs/decisions.md`. Implementation plan and current slice status: `docs/roadmap.md`.

@@ -660,22 +660,17 @@ Possible shorter opening alternatives:
 
 # 19. Current development stage
 
-The project is currently in the **planning / architecture / data-modeling phase**.
+The project has moved from pure planning into early implementation. Per `docs/roadmap.md`, Slice 0 (walking skeleton) is in progress; no vertical slice has shipped end-to-end yet.
 
 Current progress:
 
-- project idea defined
-- core user workflow defined
-- UI sketched in Excalidraw
-- database approach being designed
-- PostgreSQL selected
-- Neon selected as likely initial PostgreSQL host
-- OAuth2 approach considered
-- GitHub login known from the course
-- Google login planned
-- data model currently being refined
-
-The actual coding has not yet started for the main application.
+- project idea, core workflow, and data model defined (sections 1-15)
+- UI sketched in Excalidraw and reviewed (section 35)
+- PostgreSQL + Flyway migrations decided; Neon selected as hosting
+- backend scaffold exists: Spring Boot app boots, Spring Security/OAuth2-client/Flyway/Lombok dependencies added, a `SecurityConfig` stub is in place (not yet configured with an actual OAuth2 login flow)
+- CI/CD pipeline exists end-to-end (GitHub Actions -> Docker Hub -> Render, see `.github/workflows/deploy.yml`) — no SonarCloud/JaCoCo wiring yet (planned for Slice 8)
+- frontend is still the default Vite scaffold (no real UI built yet)
+- no database entities, migrations, or REST endpoints exist yet
 
 ---
 
@@ -712,8 +707,8 @@ These still need to be decided:
 ### Application features
 
 - User registration/profile details.
-- Whether users can edit/delete texts.
-- Whether vocabulary status changes automatically or only manually.
+- ~~Whether users can edit/delete texts.~~ PARTIALLY RESOLVED: no in-place edit; a text is replaced wholesale via "add new text" (with a discard warning) — see section 35. No standalone delete-without-replacing action decided.
+- ~~Whether vocabulary status changes automatically or only manually.~~ RESOLVED: hybrid — first click auto-tracks the word as UNKNOWN, then the user manually changes/removes the status — see section 35.
 - How statistics are calculated.
 - Whether vocabulary history/progress should be stored.
 
@@ -1110,7 +1105,7 @@ The following questions remain open:
 - Exact unit-test scope.
 - Exact integration-test scope.
 - Test database strategy.
-- Whether Testcontainers should be used for PostgreSQL integration tests.
+- Whether Testcontainers should be used for PostgreSQL integration tests. Interim state (not a resolution of this question): tests currently run against an in-memory H2 database (`MODE=PostgreSQL`, Flyway disabled — see `backend/src/test/resources/application.properties`), explicitly marked as a temporary stand-in until real Flyway migrations exist and/or the project switches to Testcontainers with a real Postgres instance.
 
 ### Dependency management
 
@@ -1259,6 +1254,8 @@ Confirms context helps (compare to the isolated-word test in section 5, where fo
 
 First round of Excalidraw wireframes reviewed, covering the Text page (paste/process/highlight/click-word popup) and the Dictionaries page (per-language-pair summary cards + per-word list). This resolved several open items and superseded the original status naming from section 2.
 
+Source files: `docs/local/wireframes/lexicon-2026-09-17.excalidraw` (+ `.png` export). `docs/local/` is gitignored (not committed), so these only exist in the local working copy — open them directly to see the actual sketch rather than relying solely on this write-up.
+
 ## Interface language
 
 English only for now. Additional interface languages may be added later, but this is explicitly not a near-term priority — no i18n abstraction is being built ahead of need.
@@ -1297,5 +1294,18 @@ The transition from the first state to the second happens **automatically on cli
 - Sidebar is collapsible (hamburger toggle).
 - Under Dictionaries, each language pair gets its own nested sub-items in the sidebar for Unknown/Review/Known (not just the language pair itself) — partly for navigation convenience, partly so the sidebar doesn't look sparse.
 - Manually adding a word to the dictionary (without it appearing in a processed text) is a possible future feature, not required now. Rough shape if/when it's built: user types a word, the translation service is called, the translation is shown, and a "Save" action adds it to `UserVocabulary`. Not designed in detail yet.
+- The `+` in the Dictionaries overview page header is an "add dictionary" button — lets a user manually start tracking a new language pair without having processed any text in it yet. Same status as manually adding a word above: possible future feature, not required for the MVP slices, can be deferred.
+- The specific-dictionary view needs a back button (a left-arrow icon next to the language-pair title, not a remove/delete action) to return to the Dictionaries overview list. The exact placement/pattern isn't finalized — the actual requirement is just that navigating back out of a specific dictionary must be convenient, however it ends up implemented.
 - Layout must be responsive down to mobile widths.
 - Word highlighting should stay subtle/low-contrast so the underlying text remains easy to read, even though the wireframe itself uses fairly strong colors as a placeholder.
+
+---
+
+# 36. Code reuse principle
+
+Applies in both directions across slices:
+
+- **Backward:** before writing new logic in a slice — a service method, a repository query, a React component, a validation rule — check whether an earlier slice already built something that does the same job (or close to it), and reuse or extend it rather than writing a parallel copy.
+- **Forward:** when planning or writing the guide for a slice, check `docs/roadmap.md` for whether a later, already-planned slice will need the same piece of logic/data/component. If so, leave a short cross-reference note in both slices' roadmap entries (e.g. Slice 4 already does this: "the same trash icon used for per-word rows in Slice 5's dictionary list view"). This is not speculative — it's grounded in a later slice that's already on the roadmap, not a guess about the future — so it doesn't conflict with the project's general "don't design for hypothetical requirements" default. The point is only to note the connection so the earlier slice's code is shaped with that known reuse in mind, not to build the abstraction ahead of time.
+
+Neither direction is a mandate to abstract preemptively: two pieces of code that only coincidentally look similar today, but represent different concerns, should stay separate rather than being forced under one shared abstraction "just in case."
