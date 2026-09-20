@@ -668,7 +668,7 @@ Current progress:
 - UI sketched in Excalidraw and reviewed (section 35)
 - PostgreSQL + Flyway migrations decided; Neon selected as hosting
 - backend scaffold exists: Spring Boot app boots, Spring Security/OAuth2-client/Flyway/Lombok dependencies added, a `SecurityConfig` stub is in place (not yet configured with an actual OAuth2 login flow)
-- CI/CD pipeline exists end-to-end (GitHub Actions -> Docker Hub -> Render, see `.github/workflows/deploy.yml`) — no SonarCloud/JaCoCo wiring yet (planned for Slice 8)
+- CI/CD pipeline exists end-to-end (GitHub Actions -> Docker Hub -> Render, see `.github/workflows/deploy.yml`) — it only triggers on push to `main`; a separate `pull_request`-triggered workflow with tests + SonarCloud/JaCoCo is planned for Slice 2 (see section 37)
 - frontend is still the default Vite scaffold (no real UI built yet)
 - no database entities, migrations, or REST endpoints exist yet
 
@@ -1306,6 +1306,16 @@ The transition from the first state to the second happens **automatically on cli
 Applies in both directions across slices:
 
 - **Backward:** before writing new logic in a slice — a service method, a repository query, a React component, a validation rule — check whether an earlier slice already built something that does the same job (or close to it), and reuse or extend it rather than writing a parallel copy.
-- **Forward:** when planning or writing the guide for a slice, check `docs/roadmap.md` for whether a later, already-planned slice will need the same piece of logic/data/component. If so, leave a short cross-reference note in both slices' roadmap entries (e.g. Slice 4 already does this: "the same trash icon used for per-word rows in Slice 5's dictionary list view"). This is not speculative — it's grounded in a later slice that's already on the roadmap, not a guess about the future — so it doesn't conflict with the project's general "don't design for hypothetical requirements" default. The point is only to note the connection so the earlier slice's code is shaped with that known reuse in mind, not to build the abstraction ahead of time.
+- **Forward:** when planning or writing the guide for a slice, check `docs/roadmap.md` for whether a later, already-planned slice will need the same piece of logic/data/component. If so, leave a short cross-reference note in both slices' roadmap entries (e.g. Slice 5 already does this: "the same trash icon used for per-word rows in Slice 6's dictionary list view"). This is not speculative — it's grounded in a later slice that's already on the roadmap, not a guess about the future — so it doesn't conflict with the project's general "don't design for hypothetical requirements" default. The point is only to note the connection so the earlier slice's code is shaped with that known reuse in mind, not to build the abstraction ahead of time.
 
 Neither direction is a mandate to abstract preemptively: two pieces of code that only coincidentally look similar today, but represent different concerns, should stay separate rather than being forced under one shared abstraction "just in case."
+
+---
+
+# 37. CI quality gate moved up from the tail of the roadmap (2026-09-20)
+
+Slice 0 was left with one known gap on completion: no `pull_request`-triggered GitHub Actions workflow exists yet, so tests only run (as part of `mvn package` in `deploy.yml`) after code is already merged to `main`, not as a merge gate. The original roadmap had deferred fixing this all the way to the last slice (CI/CD + quality gates), bundled with SonarCloud/JaCoCo wiring.
+
+Decision: don't backfill Slice 0's gap before starting Slice 1 — the user needs to demo authentication (Slice 1) imminently, and the gap doesn't block that. Instead, the CI quality gate (PR-triggered test run + SonarCloud/JaCoCo, previously the last item on the roadmap) is moved up to immediately follow Slice 1, becoming the new Slice 2 — earlier than originally planned, but not as early as Slice 0, since a PR quality gate is more meaningful once there's real feature code (auth) for it to check, rather than against a near-empty scaffold. All slices after the original Slice 1 shift up by one number accordingly (old Slice 2 -> 3, ... old Slice 7 -> 8); the old Slice 8 is retired as a separate entry.
+
+The old Slice 8 description also mentioned "deployment hardening" alongside the CI/tests/SonarCloud work. That phrase was never given concrete content anywhere in this document (no rollback strategy, secrets rotation, staging environment, or similar has been decided) — it's dropped rather than carried forward, since there's nothing specific to move.
