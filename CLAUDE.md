@@ -28,6 +28,6 @@ Local runs need `DB_URL`, `DB_USER`, `DB_PASSWORD` for a real Postgres connectio
 ## Architecture
 
 - **Backend:** Java 25, Spring Boot, Spring Data JPA/Hibernate, Flyway migrations, Spring Security + OAuth2, PostgreSQL (hosted on Neon).
-- **Frontend:** React + TypeScript + Vite, built to static files.
+- **Frontend:** React + TypeScript + Vite + Tailwind CSS, built to static files.
 - **Integration:** in production, the frontend build output is copied into `backend/src/main/resources/static` and served by the same Spring Boot app as one deployable unit (`docs/decisions.md` section 29) — this is also how `.github/workflows/deploy.yml` wires the two builds together before packaging and pushing to Render.
 - Full architecture rationale and decision history: `docs/decisions.md`. Implementation plan and current slice status: `docs/roadmap.md`.
