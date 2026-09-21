@@ -35,6 +35,7 @@ public class SecurityConfig {
                 .authorizeHttpRequests(auth -> auth
                         .requestMatchers("/", "/index.html", "/assets/**", "/favicon.svg").permitAll()
                         .requestMatchers("/oauth2/**", "/login/**", "/logout").permitAll()
+                        .requestMatchers("/api/auth/csrf").permitAll()
                         .anyRequest().authenticated()
                 )
                 .exceptionHandling(ex -> ex
