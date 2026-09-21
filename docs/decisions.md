@@ -236,8 +236,8 @@ If usage grows significantly, infrastructure can be upgraded later. The goal is 
 Current proposed tables:
 
 ```text
-User
-----
+AppUser
+-------
 id
 email
 role
@@ -281,7 +281,7 @@ UNIQUE(user_id, word_entry_id, target_language)
 ### Relationships
 
 ```text
-User
+AppUser
  ├── UserIdentity
  └── UserVocabulary
           │
@@ -293,9 +293,9 @@ User
 More explicitly:
 
 ```text
-User 1 ─── N UserIdentity
+AppUser 1 ─── N UserIdentity
 
-User 1 ─── N UserVocabulary N ─── 1 WordEntry
+AppUser 1 ─── N UserVocabulary N ─── 1 WordEntry
 
 WordEntry 1 ─── N Translation
 ```
@@ -412,7 +412,7 @@ This ensures that a user has only one vocabulary entry for the same word and tar
 
 ---
 
-# 12. User and OAuth2 authentication
+# 12. AppUser and OAuth2 authentication
 
 ## Current authentication plan
 
@@ -429,12 +429,14 @@ Do not make GitHub or Google the identity directly referenced by application dat
 Instead:
 
 ```text
-User
-----
+AppUser
+-------
 id
 email
 created_at
 ```
+
+(Named `AppUser`/`app_user` rather than `User`/`user` — see section 38 for why.)
 
 and:
 
@@ -450,7 +452,7 @@ provider_user_id
 Example:
 
 ```text
-User #42
+AppUser #42
 
 UserIdentity:
 42 | github | 12345678
@@ -462,7 +464,7 @@ This allows one application user to have multiple OAuth identities.
 The rest of the application refers to:
 
 ```text
-User.id
+AppUser.id
 ```
 
 not to a GitHub or Google ID.
@@ -470,7 +472,7 @@ not to a GitHub or Google ID.
 Therefore:
 
 ```text
-User #42
+AppUser #42
  ├── GitHub identity
  ├── Google identity
  ├── Text
@@ -583,7 +585,7 @@ These describe language/linguistic information that can be reused by all users.
 ### User-specific data
 
 ```text
-User
+AppUser
 UserIdentity
 Text
 UserVocabulary
@@ -742,7 +744,7 @@ Core shared linguistic entities:
     Translation
 
 Core user entities:
-    User
+    AppUser
     UserIdentity
     Text
     UserVocabulary
@@ -758,7 +760,7 @@ Vocabulary categories:
     not separate tables
 
 Identity:
-    application data references User.id,
+    application data references AppUser.id,
     not GitHub/Google IDs directly
 
 Main external services:
@@ -1319,3 +1321,43 @@ Slice 0 was left with one known gap on completion: no `pull_request`-triggered G
 Decision: don't backfill Slice 0's gap before starting Slice 1 — the user needs to demo authentication (Slice 1) imminently, and the gap doesn't block that. Instead, the CI quality gate (PR-triggered test run + SonarCloud/JaCoCo, previously the last item on the roadmap) is moved up to immediately follow Slice 1, becoming the new Slice 2 — earlier than originally planned, but not as early as Slice 0, since a PR quality gate is more meaningful once there's real feature code (auth) for it to check, rather than against a near-empty scaffold. All slices after the original Slice 1 shift up by one number accordingly (old Slice 2 -> 3, ... old Slice 7 -> 8); the old Slice 8 is retired as a separate entry.
 
 The old Slice 8 description also mentioned "deployment hardening" alongside the CI/tests/SonarCloud work. That phrase was never given concrete content anywhere in this document (no rollback strategy, secrets rotation, staging environment, or similar has been decided) — it's dropped rather than carried forward, since there's nothing specific to move.
+
+---
+
+# 38. `AppUser` renamed from `User` (2026-09-20)
+
+While writing the Slice 1 implementation guide, the entity/table previously called `User`/`user` (section 12/21) was renamed to `AppUser`/`app_user`. Two independent reasons converged on the same rename:
+
+- `user` is a reserved word in PostgreSQL and needs quoting or a different name regardless.
+- The user asked for a clearer name that signals "our own application user record," as distinct from a GitHub/Google identity — which matters here specifically because this entity's whole reason for existing (section 12) is to *not* be a raw OAuth identity, so a name that could be mistaken for one undercuts the point.
+
+The foreign-key columns on `UserIdentity` and `UserVocabulary` keep the name `user_id` (referencing `app_user.id`) — renaming the column too wasn't necessary to resolve either concern above, and `user_id` reads fine in context on a table that isn't itself named `user`.
+
+---
+
+# 39. Backend package structure: layer-based, not feature-based (2026-09-20)
+
+While planning Slice 1, feature/domain packages (e.g. `com.lexicon.backend.auth`, `.vocabulary`) were briefly considered, reasoning that they'd mirror the project's vertical-slice delivery order and give better encapsulation as the codebase grows. That reasoning doesn't apply here: "vertical slices" (section 36, `docs/roadmap.md`) describes the *order* features are built in, not how backend code is packaged, and the project's actual scale (a handful of entities total) never grows large enough for the layer-package "dumping ground" concern to bite.
+
+**Decision: classic layer-based packages**, matching what the user's bootcamp taught and has always used:
+
+```text
+com.lexicon.backend.model       — JPA entities
+com.lexicon.backend.repository  — Spring Data repositories
+com.lexicon.backend.service     — business logic
+com.lexicon.backend.controller  — REST controllers
+com.lexicon.backend.enums       — enums (e.g. a future vocabulary-status enum)
+com.lexicon.backend.security    — Spring Security wiring (`SecurityConfig`, from Slice 0) and OAuth2-specific classes (custom `OAuth2UserService`, custom `OAuth2User` principal) — kept here rather than forced into `service`, since they're Spring Security infrastructure classes, not ordinary business-logic services
+```
+
+This is the convention for the whole backend going forward, not just Slice 1.
+
+---
+
+# 40. CSRF token can be stale right after a fresh login; client retries once (2026-09-20)
+
+While testing Slice 1's logout locally (reproduced live via browser automation, with and without React StrictMode — ruled StrictMode out as the cause), a repeatable pattern emerged: immediately after a fresh GitHub login, the *first* `POST /logout` fails with `403` even though the `XSRF-TOKEN` cookie the frontend reads and sends matches what's in the browser's cookie jar. The rejected request itself re-syncs the cookie, and an immediate second attempt with the freshly-read value always succeeds. This reproduced consistently across multiple independent tests.
+
+The likely cause is Spring Security's CSRF token rotation on successful authentication (invalidating the pre-login token, a deliberate hardening measure) racing with how quickly the cookie becomes available to the very next request — this wasn't nailed down to full certainty (no way to inspect the raw `Set-Cookie` traffic from JS), but the reproducible fail-once-then-succeed pattern is solid enough to act on.
+
+**Decision:** the frontend retries the logout request once on a `403` response, rather than chasing the exact root cause further. See `frontend/src/components/AccountMenu.tsx`'s `handleLogout`. This is a client-side mitigation, not a security weakening — CSRF protection itself (see the `SpaCsrfTokenRequestHandler` in `SecurityConfig`, documented in the Slice 1 guide) is untouched; it only smooths over a timing quirk specific to the first state-changing request right after login. Worth remembering for Slice 5: any vocabulary-status write endpoint hit immediately after a fresh login could hit the same one-time 403, so the same retry-once pattern (or a small shared fetch helper implementing it) should be reused there rather than re-discovered.
