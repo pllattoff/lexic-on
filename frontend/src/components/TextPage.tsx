@@ -55,7 +55,7 @@ export default function TextPage() {
     );
 }
 
-function RenderedText({ processedText }: { processedText: ProcessedText }) {
+function RenderedText({ processedText }: { readonly processedText: ProcessedText }) {
     const { text, tokens } = processedText;
     const parts: ReactNode[] = [];
     let cursor = 0;
