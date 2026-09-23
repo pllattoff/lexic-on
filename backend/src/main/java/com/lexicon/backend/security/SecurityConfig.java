@@ -6,6 +6,7 @@ import java.util.function.Supplier;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
+import org.springframework.http.HttpMethod;
 import org.springframework.http.HttpStatus;
 import org.springframework.security.config.annotation.web.builders.HttpSecurity;
 import org.springframework.security.config.annotation.web.configuration.EnableWebSecurity;
@@ -36,6 +37,7 @@ public class SecurityConfig {
                         .requestMatchers("/", "/index.html", "/assets/**", "/favicon.svg").permitAll()
                         .requestMatchers("/oauth2/**", "/login/**", "/logout").permitAll()
                         .requestMatchers("/api/auth/csrf").permitAll()
+                        .requestMatchers(HttpMethod.POST, "/api/text/process").permitAll()
                         .anyRequest().authenticated()
                 )
                 .exceptionHandling(ex -> ex
