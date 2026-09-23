@@ -2,7 +2,7 @@
 
 lexic.on is a web app for learning vocabulary while reading texts in a foreign language. Paste a text, read it in the app, click any word to see its translation, and build a personal vocabulary as you go — words are highlighted by status (Unknown / Review / Known) and different grammatical forms of the same word are recognized as one entry.
 
-This is a capstone project and is under active development. See [`docs/roadmap.md`](docs/roadmap.md) for current progress and [`docs/decisions.md`](docs/decisions.md) for the full history of architecture decisions and rationale.
+This is a capstone project and is under active development.
 
 ## Stack
 
@@ -17,7 +17,7 @@ This is a capstone project and is under active development. See [`docs/roadmap.m
 - React, TypeScript, Vite
 - Tailwind CSS + Radix UI primitives
 
-In production the frontend is built to static files and served by the Spring Boot backend as a single deployable app (see `docs/decisions.md` section 29).
+In production the frontend is built to static files and served by the Spring Boot backend as a single deployable app.
 
 ## Local development
 

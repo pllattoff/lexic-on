@@ -4,9 +4,9 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 
 ## Project state
 
-lexic.on is past the empty-scaffold stage, but no vertical feature slice has shipped end-to-end yet — see `docs/roadmap.md` for the current slice-by-slice status and `docs/decisions.md` for the full architecture/decisions history and rationale.
+lexic.on is past the empty-scaffold stage, but no vertical feature slice has shipped end-to-end yet — see `docs/local/roadmap.md` for the current slice-by-slice status and `docs/local/decisions.md` for the full architecture/decisions history and rationale. Both are gitignored personal planning docs (not committed, so they won't exist in a fresh clone) — Claude Code reads them directly from the local working copy.
 
-Currently in place: a Spring Boot backend scaffold (Spring Security/OAuth2-client/Flyway/Lombok dependencies added, a `SecurityConfig` stub not yet wired to a real login flow), a default Vite+React frontend template (no real UI yet), and a working CI/CD pipeline (GitHub Actions → Docker Hub → Render). No database entities, migrations, or real REST endpoints exist yet.
+Currently in place: GitHub OAuth2 login/logout wired end-to-end on the backend (session-based, CSRF-protected — `SecurityConfig`/`AuthController`), a minimal real frontend UI for it (`AccountMenu`: login link or avatar + click-to-logout), and a complete CI/CD setup — `deploy.yml` (push to `main` → Docker Hub → Render) plus PR-triggered `ci-backend.yml`/`ci-frontend.yml` (tests, build/lint, SonarCloud). No `AppUser`/`UserIdentity` persistence exists yet, though, so there are still no database entities or Flyway migrations — auth is session-only for now.
 
 ## Commands
 
@@ -29,5 +29,5 @@ Local runs need `DB_URL`, `DB_USER`, `DB_PASSWORD` for a real Postgres connectio
 
 - **Backend:** Java 25, Spring Boot, Spring Data JPA/Hibernate, Flyway migrations, Spring Security + OAuth2, PostgreSQL (hosted on Neon).
 - **Frontend:** React + TypeScript + Vite + Tailwind CSS, built to static files.
-- **Integration:** in production, the frontend build output is copied into `backend/src/main/resources/static` and served by the same Spring Boot app as one deployable unit (`docs/decisions.md` section 29) — this is also how `.github/workflows/deploy.yml` wires the two builds together before packaging and pushing to Render.
-- Full architecture rationale and decision history: `docs/decisions.md`. Implementation plan and current slice status: `docs/roadmap.md`.
+- **Integration:** in production, the frontend build output is copied into `backend/src/main/resources/static` and served by the same Spring Boot app as one deployable unit (`docs/local/decisions.md` section 29) — this is also how `.github/workflows/deploy.yml` wires the two builds together before packaging and pushing to Render.
+- Full architecture rationale and decision history: `docs/local/decisions.md`. Implementation plan and current slice status: `docs/local/roadmap.md`.
