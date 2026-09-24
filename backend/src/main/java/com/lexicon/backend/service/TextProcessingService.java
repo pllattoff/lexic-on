@@ -2,30 +2,70 @@ package com.lexicon.backend.service;
 
 import com.lexicon.backend.dto.ProcessedText;
 import com.lexicon.backend.dto.TextToken;
+import com.lexicon.backend.exception.TextProcessingException;
+import org.languagetool.*;
 import org.springframework.stereotype.Service;
 
+import java.io.IOException;
 import java.util.ArrayList;
 import java.util.List;
-import java.util.regex.Matcher;
-import java.util.regex.Pattern;
 
 @Service
 public class TextProcessingService {
-    // Matches a word starting with a letter, followed by letters or combining marks
-    private static final Pattern WORD = Pattern.compile("\\p{L}[\\p{L}\\p{Mn}]*");
+
+    // Each thread gets its own JLanguageTool instance
+    private final ThreadLocal<JLanguageTool> languageTool =
+            ThreadLocal.withInitial(() ->
+                    new JLanguageTool(Languages.getLanguageForShortCode("en-US"))
+            );
 
     public ProcessedText process(String text) {
         List<TextToken> tokens = new ArrayList<>();
+        int cursor = 0;
 
-        Matcher matcher = WORD.matcher(text);
-        while (matcher.find()) {
-            tokens.add(new TextToken(
-                    matcher.start(),
-                    matcher.end(),
-                    matcher.group().toLowerCase()
-            ));
+        try {
+            for (AnalyzedSentence sentence : languageTool.get().analyzeText(text)) {
+                for (AnalyzedTokenReadings tokenReadings : sentence.getTokensWithoutWhitespace()) {
+                    String token = tokenReadings.getToken();
+
+                    // Keep only word tokens
+                    if (token.isBlank() || token.chars().noneMatch(Character::isLetter)) {
+                        continue;
+                    }
+
+                    int start = text.indexOf(token, cursor);
+                    if (start < 0) {
+                        throw new TextProcessingException("Could not find token in original text: " + token);
+                    }
+
+                    int end = start + token.length();
+
+                    tokens.add(new TextToken(
+                            start,
+                            end,
+                            resolveLemma(tokenReadings, token)
+                    ));
+
+                    cursor = end;
+                }
+            }
+        } catch (IOException e) {
+            throw new TextProcessingException("LanguageTool analysis failed", e);
         }
 
         return new ProcessedText(text, tokens);
+    }
+
+    // Resolve the lemma from the token's possible readings.
+    // Prefer a lemma that differs from the original token when available.
+    private String resolveLemma(AnalyzedTokenReadings tokenReadings, String token) {
+        return tokenReadings.getReadings().stream()
+                .map(AnalyzedToken::getLemma)
+                .filter(lemma -> lemma != null && !lemma.equalsIgnoreCase(token))
+                .findFirst()
+                .orElseGet(() -> {
+                    String firstLemma = tokenReadings.getReadings().get(0).getLemma();
+                    return firstLemma != null ? firstLemma : token;
+                });
     }
 }
