@@ -13,18 +13,15 @@ import java.util.List;
 @Service
 public class TextProcessingService {
 
-    // Each thread gets its own JLanguageTool instance
-    private final ThreadLocal<JLanguageTool> languageTool =
-            ThreadLocal.withInitial(() ->
-                    new JLanguageTool(Languages.getLanguageForShortCode("en-US"))
-            );
-
     public ProcessedText process(String text) {
+        JLanguageTool languageTool =
+                new JLanguageTool(Languages.getLanguageForShortCode("en-US"));
+
         List<TextToken> tokens = new ArrayList<>();
         int cursor = 0;
 
         try {
-            for (AnalyzedSentence sentence : languageTool.get().analyzeText(text)) {
+            for (AnalyzedSentence sentence : languageTool.analyzeText(text)) {
                 for (AnalyzedTokenReadings tokenReadings : sentence.getTokensWithoutWhitespace()) {
                     String token = tokenReadings.getToken();
 
