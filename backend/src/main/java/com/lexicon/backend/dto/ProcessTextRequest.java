@@ -1,4 +1,6 @@
 package com.lexicon.backend.dto;
 
-public record ProcessTextRequest(String text) {
+import jakarta.validation.constraints.NotBlank;
+
+public record ProcessTextRequest(@NotBlank String text) {
 }
