@@ -8,14 +8,33 @@ import org.springframework.stereotype.Service;
 
 import java.io.IOException;
 import java.util.ArrayList;
+import java.util.Collections;
 import java.util.List;
 
 @Service
 public class TextProcessingService {
 
+    // Skip grammar and false-friend rules because this service only uses LanguageTool
+    // for tokenization and lemmatization, reducing startup time and memory usage.
+    //
+    // JLanguageTool is not thread-safe, so each Tomcat worker thread gets its own
+    // cached instance instead of creating a new instance for every request.
+    private static final ThreadLocal<JLanguageTool> LANGUAGE_TOOL = ThreadLocal.withInitial(() ->
+            new JLanguageTool(
+                    Languages.getLanguageForShortCode("en-US"),
+                    Collections.emptyList(),
+                    null,
+                    null,
+                    null,
+                    null,
+                    false,
+                    false,
+                    Collections.emptyList()
+            )
+    );
+
     public ProcessedText process(String text) {
-        JLanguageTool languageTool =
-                new JLanguageTool(Languages.getLanguageForShortCode("en-US"));
+        JLanguageTool languageTool = LANGUAGE_TOOL.get();
 
         List<TextToken> tokens = new ArrayList<>();
         int cursor = 0;
