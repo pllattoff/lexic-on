@@ -1,34 +1,51 @@
 @import "tailwindcss";
 
-:root {
-  --text: #6b6375;
-  --text-h: #08060d;
-  --bg: #fff;
-  --border: #e5e4e7;
-  --code-bg: #f4f3ec;
+/*
+ * Tailwind theme tokens.
+ * --color-* defines colors and generates utilities such as
+ * bg-surface, text-surface, border-surface.
+ */
+@theme {
+  --color-base: #121319;
+  --color-surface: #1c1e26;
+  --color-surface-2: #262933;
+  --color-outline: #3d4150;
+  --color-outline-strong: #565b6d;
+  --color-body: #b6bcc8;
+  --color-heading: #f1f2f5;
+  --color-accent: #7c86ff;
+  --color-known: #3ecf7e;
+  --color-review: #e8c547;
+  --color-unknown: #e5677a;
+}
 
+/*
+ * :root targets the <html> element.
+ * It contains global CSS custom properties and default CSS properties.
+ * Custom properties start with -- and are used with var().
+ */
+:root {
   --sans: system-ui, 'Segoe UI', Roboto, sans-serif;
   --mono: ui-monospace, Consolas, monospace;
 
   font: 18px/145% var(--sans);
   letter-spacing: 0.18px;
-  color-scheme: light dark;
-  color: var(--text);
-  background: var(--bg);
+  color-scheme: dark;
+  color: var(--color-body);
+  background: var(--color-base);
   font-synthesis: none;
   text-rendering: optimizeLegibility;
   -webkit-font-smoothing: antialiased;
   -moz-osx-font-smoothing: grayscale;
 }
 
-@media (prefers-color-scheme: dark) {
-  :root {
-    --text: #9ca3af;
-    --text-h: #f3f4f6;
-    --bg: #16171d;
-    --border: #2e303a;
-    --code-bg: #1f2028;
-  }
+/*
+ * Include padding and border in width and height.
+ */
+*,
+*::before,
+*::after {
+  box-sizing: border-box;
 }
 
 body {
