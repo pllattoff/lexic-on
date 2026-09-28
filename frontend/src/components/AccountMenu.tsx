@@ -1,33 +1,21 @@
 import { useEffect, useState } from "react";
-import { fetchWithCsrf } from "../lib/csrf.ts";
-
-type Me = {
-    login: string;
-    email: string | null;
-    avatarUrl: string | null;
-};
+import { getCurrentUser, logout } from "../api/authApi.ts";
+import type { CurrentUser } from "../types/auth.ts";
+import GithubIcon from "./icons/GithubIcon.tsx";
 
 export default function AccountMenu() {
-    const [me, setMe] = useState<Me | null>(null);
+    const [me, setMe] = useState<CurrentUser | null>(null);
     const [loading, setLoading] = useState(true);
 
     useEffect(() => {
-        fetch("/api/auth/csrf")
-            .then(() => fetch("/api/auth/me"))
-            .then((res) => (res.ok ? res.json() : null))
+        getCurrentUser()
             .then(setMe)
             .finally(() => setLoading(false));
     }, []);
-
-    async function postLogout() {
-        return fetchWithCsrf("/logout", {
-            method: "POST",
-            credentials: "include",
-        });
-    }
+    // [] - runs once after the initial render
 
     async function handleLogout() {
-        const res = await postLogout();
+        const res = await logout();
 
         if (res.ok) {
             setMe(null);
@@ -36,23 +24,33 @@ export default function AccountMenu() {
         }
     }
 
+    // The initial rendering of the component returns null
+    // The component re-renders after useEffect with [] runs and updates the loading state
     if (loading) return null;
 
     if (!me) {
-        return <a href="/oauth2/authorization/github">Continue with GitHub</a>;
+        return (
+            <a href="/oauth2/authorization/github" className="flex items-center gap-2 text-sm">
+                <GithubIcon />
+                Continue with GitHub
+            </a>
+        );
     }
 
     return (
-        <button onClick={handleLogout} title={me.email ?? me.login}>
-            {me.avatarUrl && (
-                <img
-                    src={me.avatarUrl}
-                    alt={me.login}
-                    width={32}
-                    height={32}
-                    className="rounded-full"
-                />
-            )}
-        </button>
+        <div className="flex items-center gap-4">
+            <span className="text-sm">Hello, {me.login}</span>
+            <button onClick={handleLogout} title={me.email ?? me.login}>
+                {me.avatarUrl && (
+                    <img
+                        src={me.avatarUrl}
+                        alt={me.login}
+                        width={32}
+                        height={32}
+                        className="rounded-full"
+                    />
+                )}
+            </button>
+        </div>
     );
 }

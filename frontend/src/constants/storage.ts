@@ -1,0 +1,1 @@
+export const INPUT_TEXT_STORAGE_KEY = "textPage:inputText";
