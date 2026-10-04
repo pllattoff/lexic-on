@@ -83,9 +83,10 @@ class AzureTranslatorClientTest {
         mockRestServiceServer
                 .expect(requestTo("http://localhost/translate?api-version=3.0&from=en&to=de"))
                 .andRespond(withStatus(HttpStatus.INTERNAL_SERVER_ERROR));
+        List<String> texts = List.of("hello");
 
         // WHEN
-        assertThatThrownBy(() -> azureTranslatorClient.translate(List.of("hello"), SourceLanguage.EN, TargetLanguage.DE))
+        assertThatThrownBy(() -> azureTranslatorClient.translate(texts, SourceLanguage.EN, TargetLanguage.DE))
         // THEN the HTTP failure is wrapped, keeping the original cause
                 .isInstanceOf(TranslationException.class)
                 .hasMessage("Azure Translator request failed")
@@ -100,9 +101,10 @@ class AzureTranslatorClientTest {
                 .andRespond(withSuccess("""
                         [{"translations": [{"text": "hallo", "to": "de"}]}]
                         """, MediaType.APPLICATION_JSON));
+        List<String> texts = List.of("hello", "world");
 
         // WHEN
-        assertThatThrownBy(() -> azureTranslatorClient.translate(List.of("hello", "world"), SourceLanguage.EN, TargetLanguage.DE))
+        assertThatThrownBy(() -> azureTranslatorClient.translate(texts, SourceLanguage.EN, TargetLanguage.DE))
         // THEN
                 .isInstanceOf(TranslationException.class)
                 .hasMessage("Unexpected Azure Translator response shape");
@@ -114,9 +116,10 @@ class AzureTranslatorClientTest {
         mockRestServiceServer
                 .expect(requestTo("http://localhost/translate?api-version=3.0&from=en&to=de"))
                 .andRespond(withSuccess("null", MediaType.APPLICATION_JSON));
+        List<String> texts = List.of("hello");
 
         // WHEN
-        assertThatThrownBy(() -> azureTranslatorClient.translate(List.of("hello"), SourceLanguage.EN, TargetLanguage.DE))
+        assertThatThrownBy(() -> azureTranslatorClient.translate(texts, SourceLanguage.EN, TargetLanguage.DE))
         // THEN
                 .isInstanceOf(TranslationException.class)
                 .hasMessage("Unexpected Azure Translator response shape");
@@ -130,9 +133,10 @@ class AzureTranslatorClientTest {
                 .andRespond(withSuccess("""
                         [{}]
                         """, MediaType.APPLICATION_JSON));
+        List<String> texts = List.of("hello");
 
         // WHEN
-        assertThatThrownBy(() -> azureTranslatorClient.translate(List.of("hello"), SourceLanguage.EN, TargetLanguage.DE))
+        assertThatThrownBy(() -> azureTranslatorClient.translate(texts, SourceLanguage.EN, TargetLanguage.DE))
         // THEN
                 .isInstanceOf(TranslationException.class)
                 .hasMessage("Azure Translator returned no translation");
@@ -146,9 +150,10 @@ class AzureTranslatorClientTest {
                 .andRespond(withSuccess("""
                         [{"translations": []}]
                         """, MediaType.APPLICATION_JSON));
+        List<String> texts = List.of("hello");
 
         // WHEN
-        assertThatThrownBy(() -> azureTranslatorClient.translate(List.of("hello"), SourceLanguage.EN, TargetLanguage.DE))
+        assertThatThrownBy(() -> azureTranslatorClient.translate(texts, SourceLanguage.EN, TargetLanguage.DE))
         // THEN
                 .isInstanceOf(TranslationException.class)
                 .hasMessage("Azure Translator returned no translation");
