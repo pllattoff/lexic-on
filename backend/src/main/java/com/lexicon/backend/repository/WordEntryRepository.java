@@ -8,5 +8,5 @@ import java.util.Collection;
 import java.util.List;
 
 public interface WordEntryRepository extends JpaRepository<WordEntry, Long> {
-    List<WordEntry> findByLanguageAndLemmaIn(SourceLanguage language, Collection<String> lemmas);
+    List<WordEntry> findByLemmaInAndLanguage(Collection<String> lemmas, SourceLanguage language);
 }
