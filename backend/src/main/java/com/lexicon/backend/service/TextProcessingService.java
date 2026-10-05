@@ -59,7 +59,8 @@ public class TextProcessingService {
                     tokens.add(new TextToken(
                             start,
                             end,
-                            resolveLemma(tokenReadings, token)
+                            resolveLemma(tokenReadings, token),
+                            null
                     ));
 
                     cursor = end;
