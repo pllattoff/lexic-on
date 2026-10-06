@@ -27,7 +27,7 @@ public class SecurityConfig {
     private String frontendUrl;
 
     @Bean
-    public SecurityFilterChain securityFilterChain(HttpSecurity http) throws Exception {
+    public SecurityFilterChain securityFilterChain(HttpSecurity http, CustomOAuth2UserService customOAuth2UserService) throws Exception {
         http
                 .csrf(csrf -> csrf
                         .csrfTokenRepository(CookieCsrfTokenRepository.withHttpOnlyFalse())
@@ -43,7 +43,9 @@ public class SecurityConfig {
                 .exceptionHandling(ex -> ex
                         .authenticationEntryPoint(new HttpStatusEntryPoint(HttpStatus.UNAUTHORIZED))
                 )
-                .oauth2Login(o -> o.defaultSuccessUrl(frontendUrl, true))
+                .oauth2Login(o -> o
+                        .userInfoEndpoint(userInfo -> userInfo.userService(customOAuth2UserService))
+                        .defaultSuccessUrl(frontendUrl, true))
                 .logout(logout -> logout.logoutSuccessUrl(frontendUrl));
 
         return http.build();
