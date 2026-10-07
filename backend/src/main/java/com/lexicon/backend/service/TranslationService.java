@@ -36,7 +36,8 @@ public class TranslationService {
                         token.start(),
                         token.end(),
                         token.lemma(),
-                        translationsByLemma.get(token.lemma())
+                        translationsByLemma.get(token.lemma()),
+                        token.status()
                 ))
                 .toList();
 

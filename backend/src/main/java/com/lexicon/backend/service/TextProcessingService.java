@@ -60,6 +60,7 @@ public class TextProcessingService {
                             start,
                             end,
                             resolveLemma(tokenReadings, token),
+                            null,
                             null
                     ));
 
