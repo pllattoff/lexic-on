@@ -1,7 +1,7 @@
 package com.lexicon.backend.controller;
 
+import com.lexicon.backend.security.AppOAuth2User;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
-import org.springframework.security.oauth2.core.user.OAuth2User;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
@@ -13,11 +13,12 @@ public class AuthController {
 
     record MeResponse(String login, String email, String avatarUrl) {}
 
+    // AppOAuth2User: Custom user combining OAuth2 provider attributes with application-specific user data
     @GetMapping("/me")
-    public MeResponse getMe(@AuthenticationPrincipal OAuth2User user) {
+    public MeResponse getMe(@AuthenticationPrincipal AppOAuth2User user) {
         return new MeResponse(
                 user.getAttribute("login"),
-                user.getAttribute("email"),
+                user.getEmail(),
                 user.getAttribute("avatar_url"));
     }
 

@@ -8,6 +8,7 @@ import com.lexicon.backend.model.Translation;
 import com.lexicon.backend.model.WordEntry;
 import com.lexicon.backend.repository.TranslationRepository;
 import com.lexicon.backend.repository.WordEntryRepository;
+import com.lexicon.backend.security.GithubApiClient;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.webmvc.test.autoconfigure.AutoConfigureMockMvc;
@@ -15,6 +16,7 @@ import org.springframework.boot.restclient.test.autoconfigure.AutoConfigureMockR
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.http.MediaType;
 import org.springframework.test.web.client.MockRestServiceServer;
+import org.springframework.test.context.bean.override.mockito.MockitoBean;
 import org.springframework.test.web.servlet.MockMvc;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -48,6 +50,10 @@ class TextControllerTest {
 
     @Autowired
     private ObjectMapper objectMapper;
+
+    // Not used here. Replacing it keeps Azure the only RestClient bound to MockRestServiceServer
+    @MockitoBean
+    private GithubApiClient githubApiClient;
 
     @Test
     void process_returnsBadRequest_whenTextIsBlank() throws Exception {
