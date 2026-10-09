@@ -1,56 +1,79 @@
 import { useEffect, useState } from "react";
-import { getCurrentUser, logout } from "../api/authApi.ts";
-import type { CurrentUser } from "../types/auth.ts";
 import GithubIcon from "./icons/GithubIcon.tsx";
+import LoadingOverlay from "./LoadingOverlay.tsx";
+import { logout } from "../api/authApi.ts";
+import type { CurrentUser } from "../types/auth.ts";
 
-export default function AccountMenu() {
-    const [me, setMe] = useState<CurrentUser | null>(null);
-    const [loading, setLoading] = useState(true);
+type AccountMenuProps = {
+    currentUser: CurrentUser | null;
+    userLoading: boolean;
+};
 
+export default function AccountMenu({ currentUser, userLoading }: Readonly<AccountMenuProps>) {
+    // True from the click on login/logout until the page is left or the request fails
+    const [authPending, setAuthPending] = useState(false);
+
+    // Going back from the GitHub login page restores this page from the browser cache
+    // with authPending still true, so it has to be reset
     useEffect(() => {
-        getCurrentUser()
-            .then(setMe)
-            .finally(() => setLoading(false));
+        function handlePageShow(event: PageTransitionEvent) {
+            if (event.persisted) setAuthPending(false);
+        }
+
+        globalThis.addEventListener("pageshow", handlePageShow);
+        return () => globalThis.removeEventListener("pageshow", handlePageShow);
     }, []);
-    // [] - runs once after the initial render
 
     async function handleLogout() {
+        setAuthPending(true);
         const res = await logout();
 
         if (res.ok) {
-            setMe(null);
+            // Reload the page to clear the logged-out user's state
+            globalThis.location.reload();
         } else {
             console.error("Logout failed");
+            setAuthPending(false);
         }
     }
 
-    // The initial rendering of the component returns null
-    // The component re-renders after useEffect with [] runs and updates the loading state
-    if (loading) return null;
+    const overlay = <LoadingOverlay visible={userLoading || authPending} />;
 
-    if (!me) {
+    // getCurrentUser() runs after the initial render.
+    // The component re-renders when userLoading changes.
+    if (userLoading) return overlay;
+
+    if (!currentUser) {
         return (
-            <a href="/oauth2/authorization/github" className="flex items-center gap-2 text-sm">
-                <GithubIcon />
-                Continue with GitHub
-            </a>
+            <>
+                <a
+                    href="/oauth2/authorization/github"
+                    onClick={() => setAuthPending(true)}
+                    className="flex items-center gap-2 text-sm"
+                >
+                    <GithubIcon />
+                    Continue with GitHub
+                </a>
+                {overlay}
+            </>
         );
     }
 
     return (
         <div className="flex items-center gap-4">
-            <span className="text-sm">Hello, {me.login}</span>
-            <button onClick={handleLogout} title={me.email ?? me.login}>
-                {me.avatarUrl && (
+            <span className="text-sm">Hello, {currentUser.login}</span>
+            <button onClick={handleLogout} title={currentUser.email ?? currentUser.login}>
+                {currentUser.avatarUrl && (
                     <img
-                        src={me.avatarUrl}
-                        alt={me.login}
+                        src={currentUser.avatarUrl}
+                        alt={currentUser.login}
                         width={32}
                         height={32}
                         className="rounded-full"
                     />
                 )}
             </button>
+            {overlay}
         </div>
     );
 }

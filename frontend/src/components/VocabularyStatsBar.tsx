@@ -4,7 +4,7 @@ import type { TextToken } from "../types/text.ts";
 const UNTRACKED_BLOCK_CLASSNAME = "border-outline-strong bg-surface-2 text-body";
 
 // Each word occurrence counts, so the percentages of all blocks add up to 100%
-export default function StatusStatsBar({ tokens }: Readonly<{ tokens: TextToken[] }>) {
+export default function VocabularyStatsBar({ tokens }: Readonly<{ tokens: TextToken[] }>) {
     if (tokens.length === 0) return null;
 
     const blocks = [
@@ -28,7 +28,7 @@ export default function StatusStatsBar({ tokens }: Readonly<{ tokens: TextToken[
                 <div key={block.key} className={`rounded-md border px-3 py-2 text-center ${block.className}`}>
                     <div className="font-medium">{block.label}</div>
                     <div className="text-sm">
-                        {block.count} ({Math.round((block.count / tokens.length) * 100)}%)
+                        {Math.round((block.count / tokens.length) * 100)}% ({block.count})
                     </div>
                 </div>
             ))}
