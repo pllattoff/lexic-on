@@ -4,6 +4,7 @@ import com.lexicon.backend.dto.ProcessedText;
 import com.lexicon.backend.dto.TextToken;
 import com.lexicon.backend.enums.SourceLanguage;
 import com.lexicon.backend.enums.TargetLanguage;
+import com.lexicon.backend.enums.VocabularyStatus;
 import com.lexicon.backend.exception.TranslationException;
 import com.lexicon.backend.model.Translation;
 import com.lexicon.backend.model.WordEntry;
@@ -49,8 +50,8 @@ class TranslationServiceTest {
     void attachTranslations_returnsStoredTranslations_withoutCallingAzure_whenAllTranslationsExist() {
         // GIVEN both lemmas already have stored translations
         ProcessedText processedText = new ProcessedText("Hello world", List.of(
-                new TextToken(0, 5, "hello", null),
-                new TextToken(6, 11, "world", null)));
+                new TextToken(0, 5, "hello", null, null),
+                new TextToken(6, 11, "world", null, null)));
         givenStoredTranslations(Map.of("hello", "hallo", "world", "Welt"));
 
         // WHEN
@@ -67,8 +68,8 @@ class TranslationServiceTest {
     void attachTranslations_translatesOnlyMissingLemmas_whenSomeTranslationsExist() {
         // GIVEN "hello" is stored, "world" is not
         ProcessedText processedText = new ProcessedText("Hello world", List.of(
-                new TextToken(0, 5, "hello", null),
-                new TextToken(6, 11, "world", null)));
+                new TextToken(0, 5, "hello", null, null),
+                new TextToken(6, 11, "world", null, null)));
         givenStoredTranslations(Map.of("hello", "hallo"));
         when(azureTranslatorClient.translate(List.of("world"), SourceLanguage.EN, TargetLanguage.DE))
                 .thenReturn(List.of("Welt"));
@@ -86,8 +87,8 @@ class TranslationServiceTest {
     void attachTranslations_savesOnlyNewTranslations_whenSomeTranslationsExist() {
         // GIVEN "hello" is stored, "world" is not
         ProcessedText processedText = new ProcessedText("Hello world", List.of(
-                new TextToken(0, 5, "hello", null),
-                new TextToken(6, 11, "world", null)));
+                new TextToken(0, 5, "hello", null, null),
+                new TextToken(6, 11, "world", null, null)));
         givenStoredTranslations(Map.of("hello", "hallo"));
         when(azureTranslatorClient.translate(List.of("world"), SourceLanguage.EN, TargetLanguage.DE))
                 .thenReturn(List.of("Welt"));
@@ -104,9 +105,9 @@ class TranslationServiceTest {
     void attachTranslations_requestsEachLemmaOnce_whenLemmaAppearsMultipleTimes() {
         // GIVEN a text where the lemma "go" occurs twice, in different word forms
         ProcessedText processedText = new ProcessedText("go went home", List.of(
-                new TextToken(0, 2, "go", null),
-                new TextToken(3, 7, "go", null),
-                new TextToken(8, 12, "home", null)));
+                new TextToken(0, 2, "go", null, null),
+                new TextToken(3, 7, "go", null, null),
+                new TextToken(8, 12, "home", null, null)));
         givenStoredTranslations(Map.of());
         when(azureTranslatorClient.translate(List.of("go", "home"), SourceLanguage.EN, TargetLanguage.DE))
                 .thenReturn(List.of("gehen", "Heim"));
@@ -125,8 +126,8 @@ class TranslationServiceTest {
     void attachTranslations_keepsTextAndTokenPositions_whenTranslationsAreAttached() {
         // GIVEN
         ProcessedText processedText = new ProcessedText("Hello world", List.of(
-                new TextToken(0, 5, "hello", null),
-                new TextToken(6, 11, "world", null)));
+                new TextToken(0, 5, "hello", null, null),
+                new TextToken(6, 11, "world", null, null)));
         givenStoredTranslations(Map.of("hello", "hallo", "world", "Welt"));
 
         // WHEN
@@ -135,8 +136,24 @@ class TranslationServiceTest {
         // THEN only the translation is added, everything else is unchanged
         assertThat(result.text()).isEqualTo("Hello world");
         assertThat(result.tokens()).containsExactly(
-                new TextToken(0, 5, "hello", "hallo"),
-                new TextToken(6, 11, "world", "Welt"));
+                new TextToken(0, 5, "hello", "hallo", null),
+                new TextToken(6, 11, "world", "Welt", null));
+    }
+
+    @Test
+    void attachTranslations_keepsTokenStatus_whenTranslationsAreAttached() {
+        // GIVEN a token that already carries a vocabulary status
+        ProcessedText processedText = new ProcessedText("Hello", List.of(
+                new TextToken(0, 5, "hello", null, VocabularyStatus.KNOWN)));
+        givenStoredTranslations(Map.of("hello", "hallo"));
+
+        // WHEN
+        ProcessedText result = translationService.attachTranslations(processedText, SourceLanguage.EN, TargetLanguage.DE);
+
+        // THEN the status is not lost
+        assertThat(result.tokens())
+                .extracting(TextToken::status)
+                .containsExactly(VocabularyStatus.KNOWN);
     }
 
     @Test
@@ -156,7 +173,7 @@ class TranslationServiceTest {
     @Test
     void attachTranslations_throwsAndSavesNothing_whenAzureFails() {
         // GIVEN no stored translations and Azure failing
-        ProcessedText processedText = new ProcessedText("Hello", List.of(new TextToken(0, 5, "hello", null)));
+        ProcessedText processedText = new ProcessedText("Hello", List.of(new TextToken(0, 5, "hello", null, null)));
         givenStoredTranslations(Map.of());
         when(azureTranslatorClient.translate(anyList(), any(), any()))
                 .thenThrow(new TranslationException("Azure Translator request failed"));
