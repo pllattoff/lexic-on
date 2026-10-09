@@ -11,12 +11,20 @@
   --color-surface-2: #262933;
   --color-outline: #3d4150;
   --color-outline-strong: #565b6d;
-  --color-body: #b6bcc8;
+  --color-body: #b9bec8;
   --color-heading: #f1f2f5;
   --color-accent: #7c86ff;
   --color-known: #3ecf7e;
   --color-review: #e8c547;
   --color-unknown: #e5677a;
+  --color-error: #f0955a;
+
+  /* A dot (3.75px) plus its gap (2.5px) is 6.25px. steps(4, jump-none) gives 4 values: 0, 6.25, 12.5, 18.75px = 0..3 dots */
+  --animate-dots: dots 1.2s steps(4, jump-none) infinite;
+  @keyframes dots {
+    from { width: 0; }
+    to { width: 18.75px; }
+  }
 }
 
 /*
