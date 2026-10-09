@@ -4,10 +4,17 @@ import tools.jackson.databind.ObjectMapper;
 import com.lexicon.backend.dto.ProcessTextRequest;
 import com.lexicon.backend.enums.SourceLanguage;
 import com.lexicon.backend.enums.TargetLanguage;
+import com.lexicon.backend.enums.UserRole;
+import com.lexicon.backend.enums.VocabularyStatus;
+import com.lexicon.backend.model.AppUser;
 import com.lexicon.backend.model.Translation;
+import com.lexicon.backend.model.UserVocabulary;
 import com.lexicon.backend.model.WordEntry;
+import com.lexicon.backend.repository.AppUserRepository;
 import com.lexicon.backend.repository.TranslationRepository;
+import com.lexicon.backend.repository.UserVocabularyRepository;
 import com.lexicon.backend.repository.WordEntryRepository;
+import com.lexicon.backend.security.AppOAuth2User;
 import com.lexicon.backend.security.GithubApiClient;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -20,11 +27,15 @@ import org.springframework.test.context.bean.override.mockito.MockitoBean;
 import org.springframework.test.web.servlet.MockMvc;
 import org.springframework.transaction.annotation.Transactional;
 
+import java.util.Map;
+
 import static org.hamcrest.Matchers.hasSize;
+import static org.hamcrest.Matchers.nullValue;
 import static org.springframework.test.web.client.match.MockRestRequestMatchers.content;
 import static org.springframework.test.web.client.match.MockRestRequestMatchers.requestTo;
 import static org.springframework.test.web.client.response.MockRestResponseCreators.withSuccess;
 import static org.springframework.security.test.web.servlet.request.SecurityMockMvcRequestPostProcessors.csrf;
+import static org.springframework.security.test.web.servlet.request.SecurityMockMvcRequestPostProcessors.oauth2Login;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
@@ -47,6 +58,12 @@ class TextControllerTest {
 
     @Autowired
     private TranslationRepository translationRepository;
+
+    @Autowired
+    private AppUserRepository appUserRepository;
+
+    @Autowired
+    private UserVocabularyRepository userVocabularyRepository;
 
     @Autowired
     private ObjectMapper objectMapper;
@@ -114,8 +131,34 @@ class TextControllerTest {
                 .andExpect(jsonPath("$.tokens[1].start").value(6))
                 .andExpect(jsonPath("$.tokens[1].end").value(11))
                 .andExpect(jsonPath("$.tokens[1].lemma").value("world"))
-                .andExpect(jsonPath("$.tokens[1].translation").value("Welt"));
+                .andExpect(jsonPath("$.tokens[1].translation").value("Welt"))
+                .andExpect(jsonPath("$.tokens[0].status").value(nullValue()))
+                .andExpect(jsonPath("$.tokens[1].status").value(nullValue()));
         mockRestServiceServer.verify();
+    }
+
+    @Test
+    void process_returnsVocabularyStatuses_whenCalledByLoggedInUser() throws Exception {
+        // GIVEN stored translations, and a logged-in user who tracks "hello" but has never clicked "world"
+        WordEntry hello = wordEntryRepository.save(new WordEntry(SourceLanguage.EN, "hello"));
+        WordEntry world = wordEntryRepository.save(new WordEntry(SourceLanguage.EN, "world"));
+        translationRepository.save(new Translation(hello, TargetLanguage.DE, "hallo"));
+        translationRepository.save(new Translation(world, TargetLanguage.DE, "Welt"));
+        AppUser appUser = appUserRepository.save(new AppUser("test@example.com"));
+        userVocabularyRepository.save(new UserVocabulary(appUser, hello, TargetLanguage.DE, VocabularyStatus.REVIEW));
+        AppOAuth2User loggedInUser = new AppOAuth2User(appUser.getId(), appUser.getEmail(), UserRole.USER, Map.of("id", 42));
+        String requestBody = objectMapper.writeValueAsString(new ProcessTextRequest("Hello world", SourceLanguage.EN, TargetLanguage.DE));
+
+        // WHEN
+        mockMvc.perform(post("/api/text/process")
+                        .with(oauth2Login().oauth2User(loggedInUser))
+                        .with(csrf())
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content(requestBody))
+        // THEN the tracked word carries its status, the untracked one has none
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.tokens[0].status").value("REVIEW"))
+                .andExpect(jsonPath("$.tokens[1].status").value(nullValue()));
     }
 
     @Test
