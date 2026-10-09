@@ -9,6 +9,7 @@ import org.springframework.boot.jdbc.test.autoconfigure.AutoConfigureTestDatabas
 import org.springframework.dao.DataIntegrityViolationException;
 
 import java.util.List;
+import java.util.Optional;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
@@ -48,5 +49,27 @@ class WordEntryRepositoryTest {
         assertThatThrownBy(() -> wordEntryRepository.saveAndFlush(duplicate))
         // THEN the unique constraint rejects it
                 .isInstanceOf(DataIntegrityViolationException.class);
+    }
+
+    @Test
+    void findByLemmaAndLanguage_returnsWordEntry_whenLemmaIsStored() {
+        // GIVEN two stored word entries
+        wordEntryRepository.save(new WordEntry(SourceLanguage.EN, "hello"));
+        wordEntryRepository.save(new WordEntry(SourceLanguage.EN, "world"));
+
+        // WHEN
+        Optional<WordEntry> wordEntry = wordEntryRepository.findByLemmaAndLanguage("hello", SourceLanguage.EN);
+
+        // THEN only the requested lemma is returned
+        assertThat(wordEntry).get().extracting(WordEntry::getLemma).isEqualTo("hello");
+    }
+
+    @Test
+    void findByLemmaAndLanguage_returnsEmpty_whenLemmaIsNotStored() {
+        // WHEN
+        Optional<WordEntry> wordEntry = wordEntryRepository.findByLemmaAndLanguage("unknown", SourceLanguage.EN);
+
+        // THEN
+        assertThat(wordEntry).isEmpty();
     }
 }
