@@ -1,9 +1,13 @@
 import { useEffect, useLayoutEffect, useRef, useState, type MouseEvent, type ReactNode, type SubmitEvent } from "react";
+import LoadingDots from "./LoadingDots.tsx";
+import VocabularyStatsBar from "./VocabularyStatsBar.tsx";
 import WordPopup from "./WordPopup.tsx";
-import type {ProcessedText} from "../types/text.ts";
-import {processText} from "../api/textApi.ts";
-import {INPUT_TEXT_STORAGE_KEY} from "../constants/storage.ts";
+import { processText } from "../api/textApi.ts";
+import { deleteVocabularyStatus, saveVocabularyStatus } from "../api/vocabularyApi.ts";
+import { INPUT_TEXT_STORAGE_KEY } from "../constants/storage.ts";
 import { LANGUAGE_LABELS, SOURCE_LANGUAGES, TARGET_LANGUAGES, type SourceLanguage, type TargetLanguage } from "../lib/languages.ts";
+import { STATUS_STYLES } from "../lib/vocabulary.ts";
+import type { ProcessedText, TextToken, VocabularyStatus } from "../types/text.ts";
 
 type WordPopupState = {
     lemma: string;
@@ -22,10 +26,18 @@ const BUTTON_CLASSNAME =
 const SELECT_CLASSNAME =
     "w-32 rounded-md border border-outline bg-surface-2 px-2 py-1 text-body";
 
+// Hover colors for words without a status, a bit lighter than the Untracked block in the stats bar
+const UNTRACKED_HOVER_CLASSNAME = "hover:bg-outline/50 hover:text-body";
+
 // Shared layout for both editing and read-only language selectors
 const LANGUAGE_ROW_CLASSNAME = "flex h-10 items-center gap-2 self-center";
 
-export default function TextPage() {
+// All occurrences of a lemma share the same status, so the first match is enough
+function findLemmaStatus(processedText: ProcessedText | null, lemma: string): VocabularyStatus | null {
+    return processedText?.tokens.find((token) => token.lemma === lemma)?.status ?? null;
+}
+
+export default function TextPage({ isAuthenticated }: Readonly<{ isAuthenticated: boolean }>) {
     const [inputText, setInputText] = useState(
         () => sessionStorage.getItem(INPUT_TEXT_STORAGE_KEY) ?? "",
     );
@@ -34,6 +46,8 @@ export default function TextPage() {
     const [processedText, setProcessedText] = useState<ProcessedText | null>(null);
     const [loading, setLoading] = useState(false);
     const [wordPopupState, setWordPopupState] = useState<WordPopupState | null>(null);
+    const [statusPending, setStatusPending] = useState(false);
+    const [statusError, setStatusError] = useState<string | null>(null);
     // Store a reference to the textarea DOM element for direct DOM manipulation
     const textareaRef = useRef<HTMLTextAreaElement | null>(null);
 
@@ -72,13 +86,64 @@ export default function TextPage() {
         setProcessedText(null);
     }
 
-    function handleWordClick(event: MouseEvent<HTMLSpanElement>, lemma: string, translation: string) {
+    async function handleWordClick(event: MouseEvent<HTMLSpanElement>, token: TextToken) {
         const rect = event.currentTarget.getBoundingClientRect();
         setWordPopupState({
-            lemma,
-            translation,
+            lemma: token.lemma,
+            translation: token.translation,
             top: rect.bottom + 6,
             left: rect.left,
+        });
+        setStatusError(null);
+
+        // The first click on a word starts tracking it: clicking means it was not known well enough to skip
+        if (isAuthenticated && token.status === null) {
+            await handleStatusChange(token.lemma, "UNKNOWN");
+        }
+    }
+
+    // Update the status on the backend first, then update the status in the local processedText state
+    async function handleStatusChange(lemma: string, status: VocabularyStatus) {
+        await runStatusRequest(async () => {
+            const savedStatus = await saveVocabularyStatus(lemma, sourceLanguage, targetLanguage, status);
+            updateLemmaStatus(lemma, savedStatus);
+        });
+    }
+
+    async function handleStatusDelete(lemma: string) {
+        await runStatusRequest(async () => {
+            await deleteVocabularyStatus(lemma, sourceLanguage, targetLanguage);
+            updateLemmaStatus(lemma, null);
+        });
+    }
+
+    // Handle status requests, ensuring the UI is updated only after the backend confirms the change
+    async function runStatusRequest(request: () => Promise<void>) {
+        setStatusPending(true);
+        setStatusError(null);
+
+        try {
+            await request();
+        } catch {
+            setStatusError("Couldn't save the status. Try again.");
+        } finally {
+            setStatusPending(false);
+        }
+    }
+
+    // Update all occurrences of the lemma in processedText state without processing the text again
+    function updateLemmaStatus(lemma: string, status: VocabularyStatus | null) {
+        setProcessedText((current) => {
+            if (!current) return current;
+
+            const tokens = current.tokens.map((token) => {
+                if (token.lemma !== lemma) return token;
+
+                // Copy the token and override its status property with the new value
+                return { ...token, status };
+            });
+
+            return { ...current, tokens };
         });
     }
 
@@ -92,6 +157,8 @@ export default function TextPage() {
                     targetLanguage={targetLanguage}
                     onTargetLanguageChange={setTargetLanguage}
                 />
+
+                {!isEditing && <VocabularyStatsBar tokens={processedText.tokens} />}
 
                 {isEditing ? (
                     <textarea
@@ -116,7 +183,10 @@ export default function TextPage() {
                         disabled={loading || !inputText.trim()}
                         className={`${BUTTON_CLASSNAME} border border-known/40 bg-known/20 hover:bg-known/30 disabled:cursor-not-allowed disabled:opacity-40`}
                     >
-                        Process
+                        <span className="relative">
+                            Process
+                            {loading && <LoadingDots />}
+                        </span>
                     </button>
                 ) : (
                     <button
@@ -134,8 +204,14 @@ export default function TextPage() {
                 <WordPopup
                     lemma={wordPopupState.lemma}
                     translation={wordPopupState.translation}
+                    status={findLemmaStatus(processedText, wordPopupState.lemma)}
+                    isAuthenticated={isAuthenticated}
+                    pending={statusPending}
+                    errorMessage={statusError}
                     top={wordPopupState.top}
                     left={wordPopupState.left}
+                    onStatusChange={(status) => handleStatusChange(wordPopupState.lemma, status)}
+                    onDelete={() => handleStatusDelete(wordPopupState.lemma)}
                     onClose={() => setWordPopupState(null)}
                 />
             )}
@@ -204,7 +280,7 @@ function RenderedText({
                       }: {
     readonly processedText: ProcessedText;
     readonly className: string;
-    readonly onWordClick: (event: MouseEvent<HTMLSpanElement>, lemma: string, translation: string) => void;
+    readonly onWordClick: (event: MouseEvent<HTMLSpanElement>, token: TextToken) => void;
 }) {
     const { text, tokens } = processedText;
     const textParts: ReactNode[] = [];
@@ -217,15 +293,20 @@ function RenderedText({
             textParts.push(text.slice(cursor, token.start));
         }
 
-        // Add the token as a clickable span
+        // Determine the CSS classes based on the vocabulary status
+        const statusClassName = token.status
+            ? `${STATUS_STYLES[token.status].highlight} ${STATUS_STYLES[token.status].highlightHover}`
+            : UNTRACKED_HOVER_CLASSNAME;
+
+        // Add the token as a clickable span, highlighted if the word is in the user's vocabulary
         textParts.push(
             <span
                 key={`${token.start}-${token.end}`}
-                onClick={(e) => onWordClick(e, token.lemma, token.translation)}
-                className="cursor-pointer hover:underline"
+                onClick={(e) => onWordClick(e, token)}
+                className={`-mx-[1px] cursor-pointer rounded-sm px-[1px] ${statusClassName}`}
             >
-                 {text.slice(token.start, token.end)}
-             </span>,
+                {text.slice(token.start, token.end)}
+            </span>,
         );
 
         cursor = token.end;
