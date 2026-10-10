@@ -293,15 +293,20 @@ function RenderedText({
             textParts.push(text.slice(cursor, token.start));
         }
 
+        // Determine the CSS classes based on the vocabulary status
+        const statusClassName = token.status
+            ? `${STATUS_STYLES[token.status].highlight} ${STATUS_STYLES[token.status].highlightHover}`
+            : UNTRACKED_HOVER_CLASSNAME;
+
         // Add the token as a clickable span, highlighted if the word is in the user's vocabulary
         textParts.push(
             <span
                 key={`${token.start}-${token.end}`}
                 onClick={(e) => onWordClick(e, token)}
-                className={`-mx-[1px] cursor-pointer rounded-sm px-[1px] ${token.status ? `${STATUS_STYLES[token.status].highlight} ${STATUS_STYLES[token.status].highlightHover}` : UNTRACKED_HOVER_CLASSNAME}`}
+                className={`-mx-[1px] cursor-pointer rounded-sm px-[1px] ${statusClassName}`}
             >
-                 {text.slice(token.start, token.end)}
-             </span>,
+                {text.slice(token.start, token.end)}
+            </span>,
         );
 
         cursor = token.end;
