@@ -7,6 +7,8 @@ import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.Setter;
 
+import java.time.Instant;
+
 @Entity
 @Table(name = "user_vocabulary")
 @Getter
@@ -32,6 +34,9 @@ public class UserVocabulary {
     @Enumerated(EnumType.STRING)
     @Column(nullable = false, length = 10)
     private VocabularyStatus status;
+
+    @Column(name = "created_at", nullable = false, insertable = false, updatable = false)
+    private Instant createdAt;
 
     public UserVocabulary(AppUser appUser, WordEntry wordEntry, TargetLanguage targetLanguage, VocabularyStatus status) {
         this.appUser = appUser;
