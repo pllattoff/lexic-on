@@ -1,7 +1,7 @@
 import { Link } from "react-router";
+import MenuIcon from "../icons/MenuIcon.tsx";
 import AccountMenu from "./AccountMenu.tsx";
-import MenuIcon from "./icons/MenuIcon.tsx";
-import type { CurrentUser } from "../types/auth.ts";
+import type { CurrentUser } from "../../types/auth.ts";
 
 type HeaderProps = {
     currentUser: CurrentUser | null;

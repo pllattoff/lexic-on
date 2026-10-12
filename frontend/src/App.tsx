@@ -1,18 +1,18 @@
 import { useEffect, useState } from "react";
 import { Navigate, Route, Routes } from "react-router";
-import DictionariesGate from "./components/DictionariesGate.tsx";
-import DictionariesPage from "./components/DictionariesPage.tsx";
-import DictionaryPage from "./components/DictionaryPage.tsx";
-import Footer from "./components/Footer.tsx";
-import Header from "./components/Header.tsx";
-import NotFoundPage from "./components/NotFoundPage.tsx";
-import Sidebar from "./components/Sidebar.tsx";
-import TextPage from "./components/TextPage.tsx";
+import Footer from "./components/layout/Footer.tsx";
+import Header from "./components/layout/Header.tsx";
+import Sidebar from "./components/layout/Sidebar.tsx";
 import { useCurrentUser } from "./hooks/useCurrentUser.ts";
 import { useDictionaries } from "./hooks/useDictionaries.ts";
 import { useTextSession } from "./hooks/useTextSession.ts";
 import type { SourceLanguage, TargetLanguage } from "./lib/languages.ts";
 import { isDesktopViewport, onDesktopViewportChange } from "./lib/viewport.ts";
+import DictionariesGate from "./pages/DictionariesGate.tsx";
+import DictionariesPage from "./pages/DictionariesPage.tsx";
+import DictionaryPage from "./pages/DictionaryPage.tsx";
+import NotFoundPage from "./pages/NotFoundPage.tsx";
+import TextPage from "./pages/TextPage.tsx";
 import type { WordsStatusChangeHandler } from "./types/dictionary.ts";
 
 function App() {

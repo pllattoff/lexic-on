@@ -1,5 +1,6 @@
-import { STATUS_LABELS, STATUS_STYLES } from "../lib/vocabulary.ts";
-import type { VocabularyStatus } from "../types/text.ts";
+import { STATUS_LABELS } from "../../lib/vocabulary.ts";
+import { STATUS_STYLES } from "../../lib/vocabularyStyles.ts";
+import type { VocabularyStatus } from "../../types/vocabulary.ts";
 
 const BUTTON_CLASSNAME =
     "whitespace-nowrap rounded-md px-1 text-sm transition focus-visible:outline-2 focus-visible:outline-accent disabled:cursor-not-allowed";

@@ -1,4 +1,4 @@
-import SpinnerIcon from "./icons/SpinnerIcon.tsx";
+import SpinnerIcon from "../icons/SpinnerIcon.tsx";
 
 // Full-screen loading indicator displayed over the app content
 export default function LoadingOverlay({ visible }: Readonly<{ visible: boolean }>) {

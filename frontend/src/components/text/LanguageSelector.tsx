@@ -1,4 +1,4 @@
-import { LANGUAGE_LABELS, SOURCE_LANGUAGES, TARGET_LANGUAGES, type SourceLanguage, type TargetLanguage } from "../lib/languages.ts";
+import { LANGUAGE_LABELS, SOURCE_LANGUAGES, TARGET_LANGUAGES, type SourceLanguage, type TargetLanguage } from "../../lib/languages.ts";
 
 const SELECT_CLASSNAME =
     "w-32 rounded-md border border-outline bg-surface-2 px-2 py-1 text-body";

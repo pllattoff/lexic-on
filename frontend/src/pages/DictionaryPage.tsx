@@ -1,17 +1,18 @@
 import { useEffect, useState } from "react";
 import { Link, NavLink, useParams } from "react-router";
-import ArrowLeftIcon from "./icons/ArrowLeftIcon.tsx";
-import TrashIcon from "./icons/TrashIcon.tsx";
-import NotFoundPage from "./NotFoundPage.tsx";
-import StatusButton from "./StatusButton.tsx";
 import { getDictionaryWords } from "../api/dictionaryApi.ts";
 import { deleteVocabularyStatus, saveVocabularyStatus } from "../api/vocabularyApi.ts";
+import ArrowLeftIcon from "../components/icons/ArrowLeftIcon.tsx";
+import TrashIcon from "../components/icons/TrashIcon.tsx";
+import StatusButton from "../components/ui/StatusButton.tsx";
 import { useStatusRequest } from "../hooks/useStatusRequest.ts";
 import { dictionaryStatusPath, parseLanguagePair, parseStatus } from "../lib/dictionaryRoutes.ts";
 import { LANGUAGE_LABELS, type SourceLanguage, type TargetLanguage } from "../lib/languages.ts";
-import { STATUS_LABELS, STATUS_STYLES, STATUS_TILE_CLASSNAME, VOCABULARY_STATUSES } from "../lib/vocabulary.ts";
+import { STATUS_LABELS, VOCABULARY_STATUSES } from "../lib/vocabulary.ts";
+import { STATUS_STYLES, STATUS_TILE_CLASSNAME } from "../lib/vocabularyStyles.ts";
+import NotFoundPage from "./NotFoundPage.tsx";
 import type { DictionaryWord, WordsStatusChangeHandler } from "../types/dictionary.ts";
-import type { VocabularyStatus } from "../types/text.ts";
+import type { VocabularyStatus } from "../types/vocabulary.ts";
 
 export default function DictionaryPage({ onWordsStatusChange }: Readonly<{ onWordsStatusChange: WordsStatusChangeHandler }>) {
     const { pair, status: statusSlug } = useParams();

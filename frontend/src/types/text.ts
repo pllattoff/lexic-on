@@ -1,4 +1,4 @@
-export type VocabularyStatus = "UNKNOWN" | "REVIEW" | "KNOWN";
+import type { VocabularyStatus } from "./vocabulary.ts";
 
 export type TextToken = {
     start: number;

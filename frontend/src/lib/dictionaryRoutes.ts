@@ -1,6 +1,6 @@
 import { SOURCE_LANGUAGES, TARGET_LANGUAGES, type SourceLanguage, type TargetLanguage } from "./languages.ts";
 import { VOCABULARY_STATUSES } from "./vocabulary.ts";
-import type { VocabularyStatus } from "../types/text.ts";
+import type { VocabularyStatus } from "../types/vocabulary.ts";
 
 // Dictionary routes: /dictionaries/{sourceLanguage}-{targetLanguage}
 export function dictionaryPath(sourceLanguage: SourceLanguage, targetLanguage: TargetLanguage): string {

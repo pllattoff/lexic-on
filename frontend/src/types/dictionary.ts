@@ -1,5 +1,5 @@
 import type { SourceLanguage, TargetLanguage } from "../lib/languages.ts";
-import type { VocabularyStatus } from "./text.ts";
+import type { VocabularyStatus } from "./vocabulary.ts";
 
 export type DictionarySummary = {
     sourceLanguage: SourceLanguage;

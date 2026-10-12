@@ -1,10 +1,10 @@
 import { useRef } from "react";
-import { useDismiss } from "../hooks/useDismiss.ts";
-import { VOCABULARY_STATUSES } from "../lib/vocabulary.ts";
-import type { VocabularyStatus } from "../types/text.ts";
-import CircleButton from "./CircleButton.tsx";
-import StatusButton from "./StatusButton.tsx";
-import TrashIcon from "./icons/TrashIcon.tsx";
+import TrashIcon from "../icons/TrashIcon.tsx";
+import CircleButton from "../ui/CircleButton.tsx";
+import StatusButton from "../ui/StatusButton.tsx";
+import { useDismiss } from "../../hooks/useDismiss.ts";
+import { VOCABULARY_STATUSES } from "../../lib/vocabulary.ts";
+import type { VocabularyStatus } from "../../types/vocabulary.ts";
 
 type WordPopupProps = {
     lemma: string;

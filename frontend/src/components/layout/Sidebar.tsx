@@ -1,10 +1,11 @@
 import { NavLink } from "react-router";
-import DictionariesIcon from "./icons/DictionariesIcon.tsx";
-import TextIcon from "./icons/TextIcon.tsx";
-import { dictionaryPath, dictionaryStatusPath } from "../lib/dictionaryRoutes.ts";
-import { LANGUAGE_LABELS } from "../lib/languages.ts";
-import { STATUS_LABELS, STATUS_STYLES, VOCABULARY_STATUSES } from "../lib/vocabulary.ts";
-import type { DictionarySummary } from "../types/dictionary.ts";
+import DictionariesIcon from "../icons/DictionariesIcon.tsx";
+import TextIcon from "../icons/TextIcon.tsx";
+import { dictionaryPath, dictionaryStatusPath } from "../../lib/dictionaryRoutes.ts";
+import { LANGUAGE_LABELS } from "../../lib/languages.ts";
+import { STATUS_LABELS, VOCABULARY_STATUSES } from "../../lib/vocabulary.ts";
+import { STATUS_STYLES } from "../../lib/vocabularyStyles.ts";
+import type { DictionarySummary } from "../../types/dictionary.ts";
 
 type SidebarProps = {
     isAuthenticated: boolean;

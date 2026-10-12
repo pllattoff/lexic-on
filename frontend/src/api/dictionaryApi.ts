@@ -1,7 +1,7 @@
 import { fetchWithCsrf } from "../lib/csrf.ts";
 import type { SourceLanguage, TargetLanguage } from "../lib/languages.ts";
 import type { DictionarySummary, DictionaryWord } from "../types/dictionary.ts";
-import type { VocabularyStatus } from "../types/text.ts";
+import type { VocabularyStatus } from "../types/vocabulary.ts";
 
 // Returns the user's dictionaries as language pairs with word counts for each status
 export async function getDictionaries(): Promise<DictionarySummary[]> {

@@ -1,19 +1,20 @@
 import { useLayoutEffect, useRef, useState, type MouseEvent, type SubmitEvent } from "react";
-import CircleButton from "./CircleButton.tsx";
-import ConfirmDialog from "./ConfirmDialog.tsx";
-import LanguageSelector from "./LanguageSelector.tsx";
-import LoadingDots from "./LoadingDots.tsx";
-import PlusIcon from "./icons/PlusIcon.tsx";
-import RenderedText from "./RenderedText.tsx";
-import VocabularyStatsBar from "./VocabularyStatsBar.tsx";
-import WordPopup from "./WordPopup.tsx";
 import { processText } from "../api/textApi.ts";
 import { assignStatusToLemmas, deleteVocabularyStatus, saveVocabularyStatus } from "../api/vocabularyApi.ts";
+import PlusIcon from "../components/icons/PlusIcon.tsx";
+import LanguageSelector from "../components/text/LanguageSelector.tsx";
+import RenderedText from "../components/text/RenderedText.tsx";
+import VocabularyStatsBar from "../components/text/VocabularyStatsBar.tsx";
+import WordPopup from "../components/text/WordPopup.tsx";
+import CircleButton from "../components/ui/CircleButton.tsx";
+import ConfirmDialog from "../components/ui/ConfirmDialog.tsx";
+import LoadingDots from "../components/ui/LoadingDots.tsx";
 import { useStatusRequest } from "../hooks/useStatusRequest.ts";
 import type { TextSession } from "../hooks/useTextSession.ts";
 import { getUntrackedLemmas } from "../lib/vocabulary.ts";
 import type { WordsStatusChangeHandler } from "../types/dictionary.ts";
-import type { ProcessedText, TextToken, VocabularyStatus } from "../types/text.ts";
+import type { ProcessedText, TextToken } from "../types/text.ts";
+import type { VocabularyStatus } from "../types/vocabulary.ts";
 
 type WordPopupState = {
     lemma: string;
