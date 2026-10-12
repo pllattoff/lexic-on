@@ -36,11 +36,16 @@ public class TextProcessingService {
     public ProcessedText process(String text) {
         JLanguageTool languageTool = LANGUAGE_TOOL.get();
 
+        // LanguageTool returns a typographic apostrophe in a contraction as a straight one ("they’ll" -> "'ll"),
+        // so the token would not be found in the original text. The replacement does not change the length of the
+        // text, so every offset found in the analyzed text is valid for the original text too.
+        String analyzedText = text.replace('’', '\'');
+
         List<TextToken> tokens = new ArrayList<>();
         int cursor = 0;
 
         try {
-            for (AnalyzedSentence sentence : languageTool.analyzeText(text)) {
+            for (AnalyzedSentence sentence : languageTool.analyzeText(analyzedText)) {
                 for (AnalyzedTokenReadings tokenReadings : sentence.getTokensWithoutWhitespace()) {
                     String token = tokenReadings.getToken();
 
@@ -49,7 +54,7 @@ public class TextProcessingService {
                         continue;
                     }
 
-                    int start = text.indexOf(token, cursor);
+                    int start = analyzedText.indexOf(token, cursor);
                     if (start < 0) {
                         throw new TextProcessingException("Could not find token in original text: " + token);
                     }
