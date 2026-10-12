@@ -1,37 +1,81 @@
-import { STATUS_LABELS, STATUS_STYLES, VOCABULARY_STATUSES } from "../lib/vocabulary.ts";
-import type { TextToken } from "../types/text.ts";
+import UntrackedTile from "./UntrackedTile.tsx";
+import {
+    getUntrackedLemmas,
+    STATUS_LABELS,
+    STATUS_STYLES,
+    STATUS_TILE_CLASSNAME,
+    VOCABULARY_STATUSES,
+    type HighlightKey,
+} from "../lib/vocabulary.ts";
+import type { TextToken, VocabularyStatus } from "../types/text.ts";
 
-const UNTRACKED_BLOCK_CLASSNAME = "border-outline-strong bg-surface-2 text-body";
+type VocabularyStatsBarProps = {
+    tokens: TextToken[];
+    hiddenHighlights: ReadonlySet<HighlightKey>;
+    isAuthenticated: boolean;
+    addAllPending: boolean;
+    addAllError: string | null;
+    onHighlightToggle: (key: HighlightKey) => void;
+    // Resolves to whether the words were added
+    onAddAllUntracked: (status: VocabularyStatus) => Promise<boolean>;
+};
 
 // Each word occurrence counts, so the percentages of all blocks add up to 100%
-export default function VocabularyStatsBar({ tokens }: Readonly<{ tokens: TextToken[] }>) {
+export default function VocabularyStatsBar({
+                                               tokens,
+                                               hiddenHighlights,
+                                               isAuthenticated,
+                                               addAllPending,
+                                               addAllError,
+                                               onHighlightToggle,
+                                               onAddAllUntracked,
+                                           }: Readonly<VocabularyStatsBarProps>) {
     if (tokens.length === 0) return null;
 
-    const blocks = [
-        {
-            key: "UNTRACKED",
-            label: "Untracked",
-            count: tokens.filter((token) => token.status === null).length,
-            className: UNTRACKED_BLOCK_CLASSNAME,
-        },
-        ...VOCABULARY_STATUSES.map((status) => ({
-            key: status,
-            label: STATUS_LABELS[status],
-            count: tokens.filter((token) => token.status === status).length,
-            className: STATUS_STYLES[status].block,
-        })),
-    ];
+    function percentage(count: number) {
+        return Math.round((count / tokens.length) * 100);
+    }
+
+    const untrackedCount = tokens.filter((token) => token.status === null).length;
+    // The tile counts every occurrence, the "Add" popup counts unique lemmas
+    const untrackedLemmaCount = getUntrackedLemmas(tokens).length;
 
     return (
         <div className="grid w-full grid-cols-2 gap-2 sm:grid-cols-4">
-            {blocks.map((block) => (
-                <div key={block.key} className={`rounded-md border px-3 py-2 text-center ${block.className}`}>
-                    <div className="font-medium">{block.label}</div>
-                    <div className="text-sm">
-                        {Math.round((block.count / tokens.length) * 100)}% ({block.count})
-                    </div>
-                </div>
-            ))}
+            <UntrackedTile
+                count={untrackedCount}
+                lemmaCount={untrackedLemmaCount}
+                percentage={percentage(untrackedCount)}
+                highlighted={!hiddenHighlights.has("UNTRACKED")}
+                isAuthenticated={isAuthenticated}
+                pending={addAllPending}
+                errorMessage={addAllError}
+                onToggle={() => onHighlightToggle("UNTRACKED")}
+                onAddAll={onAddAllUntracked}
+            />
+
+            {/* Clicking a status tile turns the highlighting of its words in the text on or off */}
+            {VOCABULARY_STATUSES.map((status) => {
+                const highlighted = !hiddenHighlights.has(status);
+                const count = tokens.filter((token) => token.status === status).length;
+                const styles = STATUS_STYLES[status];
+                const stateClassName = highlighted ? `${styles.block} ${styles.blockHover}` : styles.tab;
+                const hint = `${highlighted ? "Hide" : "Show"} highlighting of ${STATUS_LABELS[status]} words`;
+
+                return (
+                    <button
+                        key={status}
+                        type="button"
+                        title={hint}
+                        aria-pressed={highlighted}
+                        onClick={() => onHighlightToggle(status)}
+                        className={`${STATUS_TILE_CLASSNAME} cursor-pointer transition ${stateClassName}`}
+                    >
+                        <div className="font-medium">{STATUS_LABELS[status]}</div>
+                        <div className="text-sm">{percentage(count)}% ({count})</div>
+                    </button>
+                );
+            })}
         </div>
     );
 }
