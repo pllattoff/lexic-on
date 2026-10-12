@@ -160,14 +160,29 @@ class TranslationServiceTest {
     void attachTranslations_doesNotCallAzure_whenTextHasNoTokens() {
         // GIVEN
         ProcessedText processedText = new ProcessedText("   ", List.of());
-        givenStoredTranslations(Map.of());
 
         // WHEN
         ProcessedText result = translationService.attachTranslations(processedText, SourceLanguage.EN, TargetLanguage.DE);
 
-        // THEN
+        // THEN neither the database nor Azure is used
         assertThat(result.tokens()).isEmpty();
-        verifyNoInteractions(azureTranslatorClient, translationPersistenceService);
+        verifyNoInteractions(wordEntryRepository, translationRepository, azureTranslatorClient, translationPersistenceService);
+    }
+
+    @Test
+    void attachTranslations_doesNotQueryTranslations_whenNoWordEntryExistsYet() {
+        // GIVEN a word that was never processed, so it has no word entry and no stored translation
+        ProcessedText processedText = new ProcessedText("Hello", List.of(new TextToken(0, 5, "hello", null, null)));
+        givenStoredTranslations(Map.of());
+        when(azureTranslatorClient.translate(List.of("hello"), SourceLanguage.EN, TargetLanguage.DE))
+                .thenReturn(List.of("hallo"));
+
+        // WHEN
+        ProcessedText result = translationService.attachTranslations(processedText, SourceLanguage.EN, TargetLanguage.DE);
+
+        // THEN the translation comes from Azure and the translations table is not queried for no word entries
+        assertThat(result.tokens()).extracting(TextToken::translation).containsExactly("hallo");
+        verifyNoInteractions(translationRepository);
     }
 
     @Test
@@ -195,6 +210,9 @@ class TranslationServiceTest {
                 .toList();
 
         when(wordEntryRepository.findByLemmaInAndLanguage(any(), any())).thenReturn(wordEntries);
-        when(translationRepository.findByWordEntryInAndTargetLanguage(any(), any())).thenReturn(translations);
+        // The service does not query translations when there are no word entries
+        if (!wordEntries.isEmpty()) {
+            when(translationRepository.findByWordEntryInAndTargetLanguage(any(), any())).thenReturn(translations);
+        }
     }
 }
