@@ -24,6 +24,29 @@ export async function saveVocabularyStatus(
     return body.status;
 }
 
+// Adds the words the user does not track yet, already tracked ones keep their status.
+// Returns the lemmas that were actually added.
+export async function assignStatusToLemmas(
+    lemmas: string[],
+    sourceLanguage: SourceLanguage,
+    targetLanguage: TargetLanguage,
+    status: VocabularyStatus,
+): Promise<string[]> {
+    const res = await fetchWithCsrf("/api/vocabulary/lemmas/status", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ lemmas, sourceLanguage, targetLanguage, status }),
+    });
+
+    if (!res.ok) {
+        throw new Error(`Adding vocabulary words failed: ${res.status}`);
+    }
+
+    const body: { lemmas: string[] } = await res.json();
+
+    return body.lemmas;
+}
+
 // Removes the word from the user's vocabulary
 export async function deleteVocabularyStatus(
     lemma: string,

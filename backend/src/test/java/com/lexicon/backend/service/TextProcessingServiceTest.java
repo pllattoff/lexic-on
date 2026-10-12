@@ -76,4 +76,31 @@ class TextProcessingServiceTest {
         // THEN
         assertThat(result.tokens()).isEmpty();
     }
+
+    @Test
+    void process_returnsTokensWithCorrectOffsets_whenTextContainsTypographicApostrophe() {
+        // GIVEN a text with typographic (curly) apostrophes in contractions
+        String text = "Why, I wouldn’t say anything about it, and how brave they’ll all think me!";
+
+        // WHEN
+        ProcessedText result = textProcessingService.process(text);
+
+        // THEN the parts of the contractions are found, and each offset points to the right word in the original text
+        assertThat(result.tokens())
+                .extracting(token -> text.substring(token.start(), token.end()))
+                .containsExactly("Why", "I", "would", "n’t", "say", "anything", "about", "it",
+                        "and", "how", "brave", "they", "’ll", "all", "think", "me");
+    }
+
+    @Test
+    void process_returnsOriginalText_whenTextContainsTypographicApostrophe() {
+        // GIVEN
+        String text = "I wouldn’t say anything.";
+
+        // WHEN
+        ProcessedText result = textProcessingService.process(text);
+
+        // THEN the text is returned as the user wrote it, with the typographic apostrophe
+        assertThat(result.text()).isEqualTo(text);
+    }
 }

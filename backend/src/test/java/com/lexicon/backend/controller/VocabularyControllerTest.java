@@ -1,5 +1,6 @@
 package com.lexicon.backend.controller;
 
+import com.lexicon.backend.dto.AssignStatusToLemmasRequest;
 import com.lexicon.backend.dto.DeleteVocabularyStatusRequest;
 import com.lexicon.backend.dto.SaveVocabularyStatusRequest;
 import com.lexicon.backend.enums.SourceLanguage;
@@ -23,12 +24,16 @@ import org.springframework.test.web.servlet.MockMvc;
 import org.springframework.transaction.annotation.Transactional;
 import tools.jackson.databind.ObjectMapper;
 
+import java.util.List;
 import java.util.Map;
 
 import static org.assertj.core.api.Assertions.assertThat;
+import static org.assertj.core.api.Assertions.tuple;
+import static org.hamcrest.Matchers.contains;
 import static org.springframework.security.test.web.servlet.request.SecurityMockMvcRequestPostProcessors.csrf;
 import static org.springframework.security.test.web.servlet.request.SecurityMockMvcRequestPostProcessors.oauth2Login;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.delete;
+import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.put;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
@@ -141,6 +146,62 @@ class VocabularyControllerTest {
     }
 
     @Test
+    void assignStatusToLemmas_returnsAddedLemmas_whenSomeWordsAreAlreadyTracked() throws Exception {
+        // GIVEN "hello" tracked as REVIEW, "world" untracked and "missing" without a word entry
+        wordEntryRepository.save(new WordEntry(SourceLanguage.EN, "world"));
+        mockMvc.perform(put("/api/vocabulary")
+                .with(oauth2Login().oauth2User(loggedInUser))
+                .with(csrf())
+                .contentType(MediaType.APPLICATION_JSON)
+                .content(saveRequestBody("hello", VocabularyStatus.REVIEW)));
+        String requestBody = addRequestBody(List.of("hello", "world", "missing"));
+
+        // WHEN
+        mockMvc.perform(post("/api/vocabulary/lemmas/status")
+                        .with(oauth2Login().oauth2User(loggedInUser))
+                        .with(csrf())
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content(requestBody))
+        // THEN only "world" is added and the status of "hello" stays
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.lemmas").value(contains("world")));
+        assertThat(userVocabularyRepository.findAll())
+                .extracting(userVocabulary -> userVocabulary.getWordEntry().getLemma(), UserVocabulary::getStatus)
+                .containsExactlyInAnyOrder(
+                        tuple("hello", VocabularyStatus.REVIEW),
+                        tuple("world", VocabularyStatus.UNKNOWN));
+    }
+
+    @Test
+    void assignStatusToLemmas_returnsUnauthorized_whenUserIsGuest() throws Exception {
+        // GIVEN
+        String requestBody = addRequestBody(List.of("hello"));
+
+        // WHEN
+        mockMvc.perform(post("/api/vocabulary/lemmas/status")
+                        .with(csrf())
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content(requestBody))
+        // THEN
+                .andExpect(status().isUnauthorized());
+    }
+
+    @Test
+    void assignStatusToLemmas_returnsBadRequest_whenLemmasAreEmpty() throws Exception {
+        // GIVEN
+        String requestBody = addRequestBody(List.of());
+
+        // WHEN
+        mockMvc.perform(post("/api/vocabulary/lemmas/status")
+                        .with(oauth2Login().oauth2User(loggedInUser))
+                        .with(csrf())
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content(requestBody))
+        // THEN
+                .andExpect(status().isBadRequest());
+    }
+
+    @Test
     void deleteStatus_removesWordFromVocabulary_whenUserIsLoggedIn() throws Exception {
         // GIVEN a tracked word
         mockMvc.perform(put("/api/vocabulary")
@@ -175,6 +236,11 @@ class VocabularyControllerTest {
                         .content(requestBody))
         // THEN
                 .andExpect(status().isUnauthorized());
+    }
+
+    private String addRequestBody(List<String> lemmas) {
+        return objectMapper.writeValueAsString(new AssignStatusToLemmasRequest(
+                lemmas, SourceLanguage.EN, TargetLanguage.DE, VocabularyStatus.UNKNOWN));
     }
 
     private String saveRequestBody(String lemma, VocabularyStatus vocabularyStatus) {

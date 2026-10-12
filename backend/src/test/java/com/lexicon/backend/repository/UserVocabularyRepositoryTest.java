@@ -1,5 +1,6 @@
 package com.lexicon.backend.repository;
 
+import com.lexicon.backend.dto.LanguagePairStatusCount;
 import com.lexicon.backend.enums.SourceLanguage;
 import com.lexicon.backend.enums.TargetLanguage;
 import com.lexicon.backend.enums.VocabularyStatus;
@@ -108,6 +109,85 @@ class UserVocabularyRepositoryTest {
                 .containsExactlyInAnyOrder(
                         tuple(user.getId(), TargetLanguage.UK),
                         tuple(otherUser.getId(), TargetLanguage.DE));
+    }
+
+    @Test
+    void deleteLanguagePair_deletesAllStatusesOfTheLanguagePair_andKeepsOtherRows() {
+        // GIVEN two words of the user for German with different statuses, the user's Ukrainian row,
+        // and another user's German row
+        userVocabularyRepository.save(new UserVocabulary(user, hello, TargetLanguage.DE, VocabularyStatus.REVIEW));
+        userVocabularyRepository.save(new UserVocabulary(user, world, TargetLanguage.DE, VocabularyStatus.KNOWN));
+        userVocabularyRepository.save(new UserVocabulary(user, hello, TargetLanguage.UK, VocabularyStatus.KNOWN));
+        userVocabularyRepository.save(new UserVocabulary(otherUser, hello, TargetLanguage.DE, VocabularyStatus.KNOWN));
+
+        // WHEN the user deletes the English → German dictionary
+        userVocabularyRepository.deleteLanguagePair(user.getId(), SourceLanguage.EN, TargetLanguage.DE);
+
+        // THEN only the user's Ukrainian row and the other user's row are left
+        assertThat(userVocabularyRepository.findAll())
+                .extracting(row -> row.getAppUser().getId(), UserVocabulary::getTargetLanguage)
+                .containsExactlyInAnyOrder(
+                        tuple(user.getId(), TargetLanguage.UK),
+                        tuple(otherUser.getId(), TargetLanguage.DE));
+    }
+
+    @Test
+    void countWordsByLanguagePairAndStatus_returnsCountsPerPairAndStatus_forGivenUserOnly() {
+        // GIVEN the user's two German words (one REVIEW, one KNOWN), one Ukrainian word, and another user's word
+        userVocabularyRepository.save(new UserVocabulary(user, hello, TargetLanguage.DE, VocabularyStatus.REVIEW));
+        userVocabularyRepository.save(new UserVocabulary(user, world, TargetLanguage.DE, VocabularyStatus.KNOWN));
+        userVocabularyRepository.save(new UserVocabulary(user, hello, TargetLanguage.UK, VocabularyStatus.REVIEW));
+        userVocabularyRepository.save(new UserVocabulary(otherUser, hello, TargetLanguage.DE, VocabularyStatus.REVIEW));
+
+        // WHEN
+        List<LanguagePairStatusCount> counts = userVocabularyRepository.countWordsByLanguagePairAndStatus(user.getId());
+
+        // THEN the counts are grouped by pair and status, sorted by pair, and the other user's word is not counted
+        assertThat(counts)
+                .extracting(
+                        LanguagePairStatusCount::targetLanguage,
+                        LanguagePairStatusCount::status,
+                        LanguagePairStatusCount::wordCount)
+                .containsExactlyInAnyOrder(
+                        tuple(TargetLanguage.DE, VocabularyStatus.REVIEW, 1L),
+                        tuple(TargetLanguage.DE, VocabularyStatus.KNOWN, 1L),
+                        tuple(TargetLanguage.UK, VocabularyStatus.REVIEW, 1L));
+        assertThat(counts.getFirst().targetLanguage()).isEqualTo(TargetLanguage.DE);
+        assertThat(counts.getLast().targetLanguage()).isEqualTo(TargetLanguage.UK);
+    }
+
+    @Test
+    void findUserVocabularies_returnsNewestFirst_whenSeveralWordsHaveTheStatus() {
+        // GIVEN "hello" saved before "world", both REVIEW for German
+        userVocabularyRepository.save(new UserVocabulary(user, hello, TargetLanguage.DE, VocabularyStatus.REVIEW));
+        userVocabularyRepository.save(new UserVocabulary(user, world, TargetLanguage.DE, VocabularyStatus.REVIEW));
+
+        // WHEN
+        List<UserVocabulary> rows = userVocabularyRepository
+                .findUserVocabularies(user.getId(), SourceLanguage.EN, TargetLanguage.DE, VocabularyStatus.REVIEW);
+
+        // THEN the word saved last comes first
+        assertThat(rows)
+                .extracting(row -> row.getWordEntry().getLemma())
+                .containsExactly("world", "hello");
+    }
+
+    @Test
+    void findUserVocabularies_returnsOnlyRowsOfGivenUserPairAndStatus() {
+        // GIVEN the user's REVIEW German word, a KNOWN German word, a REVIEW Ukrainian word, and another user's REVIEW German word
+        userVocabularyRepository.save(new UserVocabulary(user, hello, TargetLanguage.DE, VocabularyStatus.REVIEW));
+        userVocabularyRepository.save(new UserVocabulary(user, world, TargetLanguage.DE, VocabularyStatus.KNOWN));
+        userVocabularyRepository.save(new UserVocabulary(user, world, TargetLanguage.UK, VocabularyStatus.REVIEW));
+        userVocabularyRepository.save(new UserVocabulary(otherUser, world, TargetLanguage.DE, VocabularyStatus.REVIEW));
+
+        // WHEN asking for the user's REVIEW words of the English-German dictionary
+        List<UserVocabulary> rows = userVocabularyRepository
+                .findUserVocabularies(user.getId(), SourceLanguage.EN, TargetLanguage.DE, VocabularyStatus.REVIEW);
+
+        // THEN only the matching row is returned
+        assertThat(rows)
+                .extracting(row -> row.getWordEntry().getLemma())
+                .containsExactly("hello");
     }
 
     @Test

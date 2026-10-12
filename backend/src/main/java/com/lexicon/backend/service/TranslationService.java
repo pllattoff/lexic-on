@@ -61,8 +61,17 @@ public class TranslationService {
     }
 
     private Map<String, String> findExistingTranslations(Set<String> lemmas, SourceLanguage sourceLanguage, TargetLanguage targetLanguage) {
+        if (lemmas.isEmpty()) {
+            return new HashMap<>();
+        }
+
         List<WordEntry> wordEntries =
                 wordEntryRepository.findByLemmaInAndLanguage(lemmas, sourceLanguage);
+
+        // Words never seen before have no translations stored yet
+        if (wordEntries.isEmpty()) {
+            return new HashMap<>();
+        }
 
         List<Translation> translations =
                 translationRepository.findByWordEntryInAndTargetLanguage(wordEntries, targetLanguage);

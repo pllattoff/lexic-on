@@ -1,5 +1,7 @@
 package com.lexicon.backend.controller;
 
+import com.lexicon.backend.dto.AssignStatusToLemmasRequest;
+import com.lexicon.backend.dto.AssignedLemmasResponse;
 import com.lexicon.backend.dto.DeleteVocabularyStatusRequest;
 import com.lexicon.backend.dto.SaveVocabularyStatusRequest;
 import com.lexicon.backend.dto.VocabularyStatusResponse;
@@ -11,6 +13,8 @@ import lombok.RequiredArgsConstructor;
 import org.springframework.http.HttpStatus;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.web.bind.annotation.*;
+
+import java.util.List;
 
 @RestController
 @RequestMapping("/api/vocabulary")
@@ -31,6 +35,21 @@ public class VocabularyController {
                 request.status());
 
         return new VocabularyStatusResponse(status);
+    }
+
+    // Assigns a vocabulary status to multiple lemmas at once.
+    // Existing entries keep their current status; returns the lemmas that were added.
+    @PostMapping("/lemmas/status")
+    public AssignedLemmasResponse assignStatusToLemmas(@AuthenticationPrincipal AppOAuth2User user,
+                                                       @Valid @RequestBody AssignStatusToLemmasRequest request) {
+        List<String> assignedLemmas = vocabularyService.assignStatusToLemmas(
+                user.getAppUserId(),
+                request.lemmas(),
+                request.sourceLanguage(),
+                request.targetLanguage(),
+                request.status());
+
+        return new AssignedLemmasResponse(assignedLemmas);
     }
 
     @DeleteMapping

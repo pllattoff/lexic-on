@@ -1,12 +1,18 @@
-import { useEffect, useLayoutEffect, useRef, useState, type MouseEvent, type ReactNode, type SubmitEvent } from "react";
+import { useLayoutEffect, useRef, useState, type MouseEvent, type SubmitEvent } from "react";
+import CircleButton from "./CircleButton.tsx";
+import ConfirmDialog from "./ConfirmDialog.tsx";
+import LanguageSelector from "./LanguageSelector.tsx";
 import LoadingDots from "./LoadingDots.tsx";
+import PlusIcon from "./icons/PlusIcon.tsx";
+import RenderedText from "./RenderedText.tsx";
 import VocabularyStatsBar from "./VocabularyStatsBar.tsx";
 import WordPopup from "./WordPopup.tsx";
 import { processText } from "../api/textApi.ts";
-import { deleteVocabularyStatus, saveVocabularyStatus } from "../api/vocabularyApi.ts";
-import { INPUT_TEXT_STORAGE_KEY } from "../constants/storage.ts";
-import { LANGUAGE_LABELS, SOURCE_LANGUAGES, TARGET_LANGUAGES, type SourceLanguage, type TargetLanguage } from "../lib/languages.ts";
-import { STATUS_STYLES } from "../lib/vocabulary.ts";
+import { assignStatusToLemmas, deleteVocabularyStatus, saveVocabularyStatus } from "../api/vocabularyApi.ts";
+import { useStatusRequest } from "../hooks/useStatusRequest.ts";
+import type { TextSession } from "../hooks/useTextSession.ts";
+import { getUntrackedLemmas } from "../lib/vocabulary.ts";
+import type { WordsStatusChangeHandler } from "../types/dictionary.ts";
 import type { ProcessedText, TextToken, VocabularyStatus } from "../types/text.ts";
 
 type WordPopupState = {
@@ -18,45 +24,50 @@ type WordPopupState = {
 
 const FIELD_CLASSNAME = "min-h-40 w-full rounded-lg border p-4 text-body";
 const EDIT_FIELD_CLASSNAME = `${FIELD_CLASSNAME} border-outline bg-surface-2`;
-const READ_FIELD_CLASSNAME = `${FIELD_CLASSNAME} border-transparent bg-surface/90`;
+const READ_FIELD_CLASSNAME = `${FIELD_CLASSNAME} border-transparent bg-panel`;
 
 const BUTTON_CLASSNAME =
     "self-end w-32 rounded-md px-4 py-2 text-center font-medium text-heading";
-
-const SELECT_CLASSNAME =
-    "w-32 rounded-md border border-outline bg-surface-2 px-2 py-1 text-body";
-
-// Hover colors for words without a status, a bit lighter than the Untracked block in the stats bar
-const UNTRACKED_HOVER_CLASSNAME = "hover:bg-outline/50 hover:text-body";
-
-// Shared layout for both editing and read-only language selectors
-const LANGUAGE_ROW_CLASSNAME = "flex h-10 items-center gap-2 self-center";
 
 // All occurrences of a lemma share the same status, so the first match is enough
 function findLemmaStatus(processedText: ProcessedText | null, lemma: string): VocabularyStatus | null {
     return processedText?.tokens.find((token) => token.lemma === lemma)?.status ?? null;
 }
 
-export default function TextPage({ isAuthenticated }: Readonly<{ isAuthenticated: boolean }>) {
-    const [inputText, setInputText] = useState(
-        () => sessionStorage.getItem(INPUT_TEXT_STORAGE_KEY) ?? "",
-    );
-    const [sourceLanguage, setSourceLanguage] = useState<SourceLanguage>("en");
-    const [targetLanguage, setTargetLanguage] = useState<TargetLanguage>("de");
-    const [processedText, setProcessedText] = useState<ProcessedText | null>(null);
+type TextPageProps = {
+    isAuthenticated: boolean;
+    textSession: TextSession;
+    onWordsStatusChange: WordsStatusChangeHandler;
+};
+
+export default function TextPage({ isAuthenticated, textSession, onWordsStatusChange }: Readonly<TextPageProps>) {
+    const {
+        inputText,
+        setInputText,
+        sourceLanguage,
+        setSourceLanguage,
+        targetLanguage,
+        setTargetLanguage,
+        processedText,
+        setProcessedText,
+        hiddenHighlights,
+        toggleHighlight,
+        clearText,
+    } = textSession;
     const [loading, setLoading] = useState(false);
     const [wordPopupState, setWordPopupState] = useState<WordPopupState | null>(null);
-    const [statusPending, setStatusPending] = useState(false);
-    const [statusError, setStatusError] = useState<string | null>(null);
+    const [clearConfirmOpen, setClearConfirmOpen] = useState(false);
+    const { pending: statusPending, errorMessage: statusError, runStatusRequest, clearError: clearStatusError } = useStatusRequest();
+    // A separate state for adding all untracked words, so its loading and error do not show up in the word popup
+    const {
+        pending: bulkPending,
+        errorMessage: bulkError,
+        runStatusRequest: runBulkStatusRequest,
+    } = useStatusRequest("Couldn't add the words. Try again.");
     // Store a reference to the textarea DOM element for direct DOM manipulation
     const textareaRef = useRef<HTMLTextAreaElement | null>(null);
 
     const isEditing = processedText === null;
-
-    // Save the input text to sessionStorage for recovery after page reloads or GitHub login redirect
-    useEffect(() => {
-        sessionStorage.setItem(INPUT_TEXT_STORAGE_KEY, inputText);
-    }, [inputText]);
 
     // Grow the textarea to fit its content instead of a fixed row count.
     // Also re-runs on isEditing so it fits existing text right when the textarea (re)mounts,
@@ -82,6 +93,23 @@ export default function TextPage({ isAuthenticated }: Readonly<{ isAuthenticated
         }
     }
 
+    // Add every untracked word of the text to the vocabulary with one status; returns whether it succeeded
+    async function handleAddAllUntracked(status: VocabularyStatus): Promise<boolean> {
+        if (!processedText) return false;
+
+        const untrackedLemmas = getUntrackedLemmas(processedText.tokens);
+
+        return await runBulkStatusRequest(async () => {
+            const addedLemmas = await assignStatusToLemmas(untrackedLemmas, sourceLanguage, targetLanguage, status);
+            onWordsStatusChange(sourceLanguage, targetLanguage, addedLemmas, status);
+        });
+    }
+
+    function handleClearConfirm() {
+        setClearConfirmOpen(false);
+        clearText();
+    }
+
     function handleEdit() {
         setProcessedText(null);
     }
@@ -94,7 +122,7 @@ export default function TextPage({ isAuthenticated }: Readonly<{ isAuthenticated
             top: rect.bottom + 6,
             left: rect.left,
         });
-        setStatusError(null);
+        clearStatusError();
 
         // The first click on a word starts tracking it: clicking means it was not known well enough to skip
         if (isAuthenticated && token.status === null) {
@@ -102,63 +130,56 @@ export default function TextPage({ isAuthenticated }: Readonly<{ isAuthenticated
         }
     }
 
-    // Update the status on the backend first, then update the status in the local processedText state
+    // Update the status on the backend first, then update it in the text and the dictionaries
     async function handleStatusChange(lemma: string, status: VocabularyStatus) {
         await runStatusRequest(async () => {
             const savedStatus = await saveVocabularyStatus(lemma, sourceLanguage, targetLanguage, status);
-            updateLemmaStatus(lemma, savedStatus);
+            onWordsStatusChange(sourceLanguage, targetLanguage, [lemma], savedStatus);
         });
     }
 
     async function handleStatusDelete(lemma: string) {
         await runStatusRequest(async () => {
             await deleteVocabularyStatus(lemma, sourceLanguage, targetLanguage);
-            updateLemmaStatus(lemma, null);
-        });
-    }
-
-    // Handle status requests, ensuring the UI is updated only after the backend confirms the change
-    async function runStatusRequest(request: () => Promise<void>) {
-        setStatusPending(true);
-        setStatusError(null);
-
-        try {
-            await request();
-        } catch {
-            setStatusError("Couldn't save the status. Try again.");
-        } finally {
-            setStatusPending(false);
-        }
-    }
-
-    // Update all occurrences of the lemma in processedText state without processing the text again
-    function updateLemmaStatus(lemma: string, status: VocabularyStatus | null) {
-        setProcessedText((current) => {
-            if (!current) return current;
-
-            const tokens = current.tokens.map((token) => {
-                if (token.lemma !== lemma) return token;
-
-                // Copy the token and override its status property with the new value
-                return { ...token, status };
-            });
-
-            return { ...current, tokens };
+            onWordsStatusChange(sourceLanguage, targetLanguage, [lemma], null);
         });
     }
 
     return (
         <div className="mx-auto max-w-3xl p-4">
             <form onSubmit={handleSubmit} className="flex flex-col items-start gap-3">
-                <LanguageSelector
-                    isEditing={isEditing}
-                    sourceLanguage={sourceLanguage}
-                    onSourceLanguageChange={setSourceLanguage}
-                    targetLanguage={targetLanguage}
-                    onTargetLanguageChange={setTargetLanguage}
-                />
+                {/* The language selector stays centered; the clear button sits at the right edge of the row */}
+                <div className="relative flex w-full justify-center">
+                    <LanguageSelector
+                        isEditing={isEditing}
+                        sourceLanguage={sourceLanguage}
+                        onSourceLanguageChange={setSourceLanguage}
+                        targetLanguage={targetLanguage}
+                        onTargetLanguageChange={setTargetLanguage}
+                    />
 
-                {!isEditing && <VocabularyStatsBar tokens={processedText.tokens} />}
+                    {inputText && (
+                        <CircleButton
+                            label="Start a new text"
+                            className="absolute right-1 top-1/2 -translate-y-1/2"
+                            onClick={() => setClearConfirmOpen(true)}
+                        >
+                            <PlusIcon />
+                        </CircleButton>
+                    )}
+                </div>
+
+                {!isEditing && (
+                    <VocabularyStatsBar
+                        tokens={processedText.tokens}
+                        hiddenHighlights={hiddenHighlights}
+                        isAuthenticated={isAuthenticated}
+                        addAllPending={bulkPending}
+                        addAllError={bulkError}
+                        onHighlightToggle={toggleHighlight}
+                        onAddAllUntracked={handleAddAllUntracked}
+                    />
+                )}
 
                 {isEditing ? (
                     <textarea
@@ -171,6 +192,7 @@ export default function TextPage({ isAuthenticated }: Readonly<{ isAuthenticated
                 ) : (
                     <RenderedText
                         processedText={processedText}
+                        hiddenHighlights={hiddenHighlights}
                         className={READ_FIELD_CLASSNAME}
                         onWordClick={handleWordClick}
                     />
@@ -200,6 +222,16 @@ export default function TextPage({ isAuthenticated }: Readonly<{ isAuthenticated
                 )}
             </form>
 
+            {clearConfirmOpen && (
+                <ConfirmDialog
+                    title="Start a new text?"
+                    message="The current text will be cleared."
+                    confirmLabel="Clear"
+                    onConfirm={handleClearConfirm}
+                    onCancel={() => setClearConfirmOpen(false)}
+                />
+            )}
+
             {wordPopupState && (
                 <WordPopup
                     lemma={wordPopupState.lemma}
@@ -219,107 +251,3 @@ export default function TextPage({ isAuthenticated }: Readonly<{ isAuthenticated
     );
 }
 
-function LanguageSelector({
-                              isEditing,
-                              sourceLanguage,
-                              onSourceLanguageChange,
-                              targetLanguage,
-                              onTargetLanguageChange,
-                          }: {
-    readonly isEditing: boolean;
-    readonly sourceLanguage: SourceLanguage;
-    readonly onSourceLanguageChange: (language: SourceLanguage) => void;
-    readonly targetLanguage: TargetLanguage;
-    readonly onTargetLanguageChange: (language: TargetLanguage) => void;
-}) {
-    if (!isEditing) {
-        return (
-            <div className={`${LANGUAGE_ROW_CLASSNAME} text-body`}>
-                <span>{LANGUAGE_LABELS[sourceLanguage]}</span>
-                <span>→</span>
-                <span>{LANGUAGE_LABELS[targetLanguage]}</span>
-            </div>
-        );
-    }
-
-    return (
-        <div className={LANGUAGE_ROW_CLASSNAME}>
-            <select
-                className={SELECT_CLASSNAME}
-                value={sourceLanguage}
-                onChange={(e) => onSourceLanguageChange(e.target.value as SourceLanguage)}
-            >
-                {SOURCE_LANGUAGES.map((language) => (
-                    <option key={language} value={language}>
-                        {LANGUAGE_LABELS[language]}
-                    </option>
-                ))}
-            </select>
-
-            <span className="text-body">→</span>
-
-            <select
-                className={SELECT_CLASSNAME}
-                value={targetLanguage}
-                onChange={(e) => onTargetLanguageChange(e.target.value as TargetLanguage)}
-            >
-                {TARGET_LANGUAGES.map((language) => (
-                    <option key={language} value={language}>
-                        {LANGUAGE_LABELS[language]}
-                    </option>
-                ))}
-            </select>
-        </div>
-    );
-}
-
-function RenderedText({
-                          processedText,
-                          className,
-                          onWordClick,
-                      }: {
-    readonly processedText: ProcessedText;
-    readonly className: string;
-    readonly onWordClick: (event: MouseEvent<HTMLSpanElement>, token: TextToken) => void;
-}) {
-    const { text, tokens } = processedText;
-    const textParts: ReactNode[] = [];
-    let cursor = 0;
-
-    // Build interactive text from plain text and clickable words
-    tokens.forEach((token) => {
-        // Add the text between the previous token and the current one
-        if (token.start > cursor) {
-            textParts.push(text.slice(cursor, token.start));
-        }
-
-        // Determine the CSS classes based on the vocabulary status
-        const statusClassName = token.status
-            ? `${STATUS_STYLES[token.status].highlight} ${STATUS_STYLES[token.status].highlightHover}`
-            : UNTRACKED_HOVER_CLASSNAME;
-
-        // Add the token as a clickable span, highlighted if the word is in the user's vocabulary
-        textParts.push(
-            <span
-                key={`${token.start}-${token.end}`}
-                onClick={(e) => onWordClick(e, token)}
-                className={`-mx-[1px] cursor-pointer rounded-sm px-[1px] ${statusClassName}`}
-            >
-                {text.slice(token.start, token.end)}
-            </span>,
-        );
-
-        cursor = token.end;
-    });
-
-    // Add any remaining text after the last token
-    if (cursor < text.length) {
-        textParts.push(text.slice(cursor));
-    }
-
-    return (
-        <p className={className} style={{ whiteSpace: "pre-wrap" }}>
-            {textParts}
-        </p>
-    );
-}

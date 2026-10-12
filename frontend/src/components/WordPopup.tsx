@@ -1,6 +1,9 @@
-import { useEffect, useRef } from "react";
-import { STATUS_LABELS, STATUS_STYLES, VOCABULARY_STATUSES } from "../lib/vocabulary.ts";
+import { useRef } from "react";
+import { useDismiss } from "../hooks/useDismiss.ts";
+import { VOCABULARY_STATUSES } from "../lib/vocabulary.ts";
 import type { VocabularyStatus } from "../types/text.ts";
+import CircleButton from "./CircleButton.tsx";
+import StatusButton from "./StatusButton.tsx";
 import TrashIcon from "./icons/TrashIcon.tsx";
 
 type WordPopupProps = {
@@ -17,9 +20,6 @@ type WordPopupProps = {
     onClose: () => void;
 };
 
-const STATUS_BUTTON_CLASSNAME =
-    "whitespace-nowrap rounded-md px-1 text-sm transition focus-visible:outline-2 focus-visible:outline-accent disabled:cursor-not-allowed";
-
 export default function WordPopup({
                                       lemma,
                                       translation,
@@ -35,28 +35,8 @@ export default function WordPopup({
                                   }: Readonly<WordPopupProps>) {
     const popupRef = useRef<HTMLDivElement | null>(null);
 
-    // Close on click outside the popup or on Escape
-    useEffect(() => {
-        function handlePointerDown(event: PointerEvent) {
-            if (popupRef.current && !popupRef.current.contains(event.target as Node)) {
-                onClose();
-            }
-        }
-
-        function handleKeyDown(event: KeyboardEvent) {
-            if (event.key === "Escape") {
-                onClose();
-            }
-        }
-
-        document.addEventListener("pointerdown", handlePointerDown);
-        document.addEventListener("keydown", handleKeyDown);
-
-        return () => {
-            document.removeEventListener("pointerdown", handlePointerDown);
-            document.removeEventListener("keydown", handleKeyDown);
-        };
-    }, [onClose]);
+    // The popup exists only while it is open
+    useDismiss(popupRef, true, onClose);
 
     return (
         <div
@@ -65,16 +45,15 @@ export default function WordPopup({
             style={{ top, left }}
         >
             {isAuthenticated && status !== null && (
-                <button
-                    type="button"
+                <CircleButton
+                    label="Remove from vocabulary"
+                    variant="inPopup"
                     disabled={pending}
+                    className="absolute right-[17px] top-[17px]"
                     onClick={onDelete}
-                    aria-label="Remove from vocabulary"
-                    title="Remove from vocabulary"
-                    className="absolute right-[18px] top-[18px] rounded-md p-1 text-body/60 transition-colors hover:text-heading focus-visible:text-heading disabled:cursor-not-allowed"
                 >
                     <TrashIcon />
-                </button>
+                </CircleButton>
             )}
 
             <div className="px-5 py-4">
@@ -84,19 +63,14 @@ export default function WordPopup({
 
                 <div className="mt-3 flex flex-wrap items-center justify-center gap-x-3 gap-y-1 border-t border-outline pt-3">
                     {VOCABULARY_STATUSES.map((buttonStatus) => (
-                        <button
+                        <StatusButton
                             key={buttonStatus}
-                            type="button"
+                            status={buttonStatus}
+                            selected={buttonStatus === status}
                             disabled={!isAuthenticated || pending}
+                            dimmed={!isAuthenticated}
                             onClick={() => onStatusChange(buttonStatus)}
-                            className={`${STATUS_BUTTON_CLASSNAME} ${isAuthenticated ? "" : "opacity-40"} ${
-                                buttonStatus === status
-                                    ? STATUS_STYLES[buttonStatus].segmentSelected
-                                    : STATUS_STYLES[buttonStatus].segment
-                            }`}
-                        >
-                            {"> "}{STATUS_LABELS[buttonStatus]}
-                        </button>
+                        />
                     ))}
                 </div>
 
