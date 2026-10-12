@@ -1,4 +1,4 @@
-import { useEffect, useId, useRef, type MouseEvent, type SyntheticEvent } from "react";
+import { useEffect, useId, useRef, type SyntheticEvent } from "react";
 
 type ConfirmDialogProps = {
     title: string;
@@ -17,11 +17,6 @@ const CANCEL_BUTTON_CLASSNAME =
 const CONFIRM_BUTTON_CLASSNAME = "rounded-md border px-4 py-2 font-medium text-heading transition disabled:cursor-not-allowed disabled:opacity-40";
 const CONFIRM_DANGER_CLASSNAME = "border-unknown/40 bg-unknown/20 hover:bg-unknown/30";
 const CONFIRM_DEFAULT_CLASSNAME = "border-accent/40 bg-accent/20 hover:bg-accent/30";
-
-// Whether a point lies outside the box of an element
-function isOutside(box: DOMRect, x: number, y: number): boolean {
-    return x < box.left || x > box.right || y < box.top || y > box.bottom;
-}
 
 // A modal window that asks the user to confirm an action
 export default function ConfirmDialog({
@@ -50,20 +45,11 @@ export default function ConfirmDialog({
         if (!pending) onCancel();
     }
 
-    // A click on the dark backdrop has the dialog itself as its target, but lies outside its box
-    function handleClick(event: MouseEvent<HTMLDialogElement>) {
-        if (event.target !== event.currentTarget || pending) return;
-
-        const box = event.currentTarget.getBoundingClientRect();
-        if (isOutside(box, event.clientX, event.clientY)) onCancel();
-    }
-
     return (
         <dialog
             ref={dialogRef}
             aria-labelledby={titleId}
             onCancel={handleCancelEvent}
-            onClick={handleClick}
             className="m-auto w-full max-w-[min(24rem,calc(100vw-2rem))] rounded-2xl border border-outline bg-surface-2 px-6 pb-6 pt-7 text-center text-body shadow-2xl shadow-black/50 backdrop:bg-black/60 backdrop:backdrop-blur-[2px]"
         >
             <h2 id={titleId} className="text-xl font-semibold text-heading">{title}</h2>
