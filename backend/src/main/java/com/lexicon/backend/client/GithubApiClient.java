@@ -1,4 +1,4 @@
-package com.lexicon.backend.security;
+package com.lexicon.backend.client;
 
 import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 import org.springframework.beans.factory.annotation.Value;

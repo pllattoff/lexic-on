@@ -1,6 +1,7 @@
 package com.lexicon.backend.controller;
 
 import tools.jackson.databind.ObjectMapper;
+import com.lexicon.backend.client.GithubApiClient;
 import com.lexicon.backend.dto.ProcessTextRequest;
 import com.lexicon.backend.enums.SourceLanguage;
 import com.lexicon.backend.enums.TargetLanguage;
@@ -15,7 +16,6 @@ import com.lexicon.backend.repository.TranslationRepository;
 import com.lexicon.backend.repository.UserVocabularyRepository;
 import com.lexicon.backend.repository.WordEntryRepository;
 import com.lexicon.backend.security.AppOAuth2User;
-import com.lexicon.backend.security.GithubApiClient;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.webmvc.test.autoconfigure.AutoConfigureMockMvc;

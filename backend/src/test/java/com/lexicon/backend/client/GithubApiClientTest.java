@@ -1,4 +1,4 @@
-package com.lexicon.backend.security;
+package com.lexicon.backend.client;
 
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
