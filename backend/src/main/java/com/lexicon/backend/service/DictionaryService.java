@@ -62,6 +62,10 @@ public class DictionaryService {
         List<UserVocabulary> userVocabularies =
                 userVocabularyRepository.findUserVocabularies(appUserId, sourceLanguage, targetLanguage, status);
 
+        if (userVocabularies.isEmpty()) {
+            return List.of();
+        }
+
         List<WordEntry> wordEntries = userVocabularies.stream()
                 .map(UserVocabulary::getWordEntry)
                 .toList();
@@ -79,6 +83,12 @@ public class DictionaryService {
                         userVocabulary.getWordEntry().getLemma(),
                         translationsByWordEntryId.getOrDefault(userVocabulary.getWordEntry().getId(), "")))
                 .toList();
+    }
+
+    // Removes all words of the user for the language pair, whatever their status
+    @Transactional
+    public void deleteDictionary(Long appUserId, SourceLanguage sourceLanguage, TargetLanguage targetLanguage) {
+        userVocabularyRepository.deleteLanguagePair(appUserId, sourceLanguage, targetLanguage);
     }
 
     private Map<VocabularyStatus, Long> createStatusCountsWithZeros() {

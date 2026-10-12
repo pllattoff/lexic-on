@@ -8,11 +8,14 @@ import com.lexicon.backend.enums.VocabularyStatus;
 import com.lexicon.backend.security.AppOAuth2User;
 import com.lexicon.backend.service.DictionaryService;
 import lombok.RequiredArgsConstructor;
+import org.springframework.http.HttpStatus;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
+import org.springframework.web.bind.annotation.DeleteMapping;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
+import org.springframework.web.bind.annotation.ResponseStatus;
 import org.springframework.web.bind.annotation.RestController;
 
 import java.util.List;
@@ -36,5 +39,13 @@ public class DictionaryController {
                                          @PathVariable TargetLanguage targetLanguage,
                                          @RequestParam VocabularyStatus status) {
         return dictionaryService.getDictionaryWords(user.getAppUserId(), sourceLanguage, targetLanguage, status);
+    }
+
+    @DeleteMapping("/{sourceLanguage}/{targetLanguage}")
+    @ResponseStatus(HttpStatus.NO_CONTENT)
+    public void deleteDictionary(@AuthenticationPrincipal AppOAuth2User user,
+                                 @PathVariable SourceLanguage sourceLanguage,
+                                 @PathVariable TargetLanguage targetLanguage) {
+        dictionaryService.deleteDictionary(user.getAppUserId(), sourceLanguage, targetLanguage);
     }
 }

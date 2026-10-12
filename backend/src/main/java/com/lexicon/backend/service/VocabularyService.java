@@ -16,6 +16,7 @@ import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+import java.util.Collection;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
@@ -37,13 +38,11 @@ public class VocabularyService {
                 .map(TextToken::lemma)
                 .collect(Collectors.toSet());
 
-        List<WordEntry> wordEntries = wordEntryRepository.findByLemmaInAndLanguage(lemmas, sourceLanguage);
+        List<WordEntry> wordEntries = lemmas.isEmpty()
+                ? List.of()
+                : wordEntryRepository.findByLemmaInAndLanguage(lemmas, sourceLanguage);
 
-        Map<String, VocabularyStatus> statusesByLemma = userVocabularyRepository
-                .findByAppUserIdAndTargetLanguageAndWordEntryIn(appUserId, targetLanguage, wordEntries).stream()
-                .collect(Collectors.toMap(
-                        userVocabulary -> userVocabulary.getWordEntry().getLemma(),
-                        UserVocabulary::getStatus));
+        Map<String, VocabularyStatus> statusesByLemma = findStatusesByLemma(appUserId, targetLanguage, wordEntries);
 
         List<TextToken> tokensWithStatuses = processedText.tokens().stream()
                 .map(token -> new TextToken(
@@ -78,11 +77,50 @@ public class VocabularyService {
         return userVocabulary.getStatus();
     }
 
+    // Gives the status to the lemmas the user does not track yet and returns these lemmas.
+    // Already tracked lemmas keep their status and lemmas without a word entry are skipped.
+    @Transactional
+    public List<String> assignStatusToLemmas(Long appUserId, Collection<String> lemmas, SourceLanguage sourceLanguage,
+                                           TargetLanguage targetLanguage, VocabularyStatus status) {
+        List<WordEntry> wordEntries = wordEntryRepository.findByLemmaInAndLanguage(lemmas, sourceLanguage);
+        if (wordEntries.isEmpty()) {
+            return List.of();
+        }
+
+        Set<String> trackedLemmas = findStatusesByLemma(appUserId, targetLanguage, wordEntries).keySet();
+
+        List<WordEntry> untrackedWordEntries = wordEntries.stream()
+                .filter(wordEntry -> !trackedLemmas.contains(wordEntry.getLemma()))
+                .toList();
+
+        AppUser appUser = appUserRepository.getReferenceById(appUserId);
+        userVocabularyRepository.saveAll(untrackedWordEntries.stream()
+                .map(wordEntry -> new UserVocabulary(appUser, wordEntry, targetLanguage, status))
+                .toList());
+
+        return untrackedWordEntries.stream()
+                .map(WordEntry::getLemma)
+                .toList();
+    }
+
     @Transactional
     public void deleteStatus(Long appUserId, String lemma, SourceLanguage sourceLanguage, TargetLanguage targetLanguage) {
         WordEntry wordEntry = findWordEntry(lemma, sourceLanguage);
 
         userVocabularyRepository.deleteByAppUserIdAndWordEntryAndTargetLanguage(appUserId, wordEntry, targetLanguage);
+    }
+
+    private Map<String, VocabularyStatus> findStatusesByLemma(Long appUserId, TargetLanguage targetLanguage,
+                                                              List<WordEntry> wordEntries) {
+        if (wordEntries.isEmpty()) {
+            return Map.of();
+        }
+
+        return userVocabularyRepository
+                .findByAppUserIdAndTargetLanguageAndWordEntryIn(appUserId, targetLanguage, wordEntries).stream()
+                .collect(Collectors.toMap(
+                        userVocabulary -> userVocabulary.getWordEntry().getLemma(),
+                        UserVocabulary::getStatus));
     }
 
     private WordEntry findWordEntry(String lemma, SourceLanguage sourceLanguage) {

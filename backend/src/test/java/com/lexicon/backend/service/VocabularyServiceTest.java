@@ -100,6 +100,48 @@ class VocabularyServiceTest {
     }
 
     @Test
+    void assignStatusToLemmas_savesRowsOnlyForUntrackedWords_whenSomeWordsAreAlreadyTracked() {
+        // GIVEN "hello" already tracked as REVIEW, "world" never tracked and "missing" without a word entry
+        WordEntry hello = new WordEntry(SourceLanguage.EN, "hello");
+        WordEntry world = new WordEntry(SourceLanguage.EN, "world");
+        List<String> lemmas = List.of("hello", "world", "missing");
+        when(wordEntryRepository.findByLemmaInAndLanguage(lemmas, SourceLanguage.EN))
+                .thenReturn(List.of(hello, world));
+        when(userVocabularyRepository.findByAppUserIdAndTargetLanguageAndWordEntryIn(
+                eq(USER_ID), eq(TargetLanguage.DE), anyCollection()))
+                .thenReturn(List.of(new UserVocabulary(
+                        new AppUser("user@example.com"), hello, TargetLanguage.DE, VocabularyStatus.REVIEW)));
+
+        // WHEN
+        List<String> addedLemmas = vocabularyService.assignStatusToLemmas(
+                USER_ID, lemmas, SourceLanguage.EN, TargetLanguage.DE, VocabularyStatus.KNOWN);
+
+        // THEN only "world" is saved with the new status and returned
+        assertThat(addedLemmas).containsExactly("world");
+        ArgumentCaptor<List<UserVocabulary>> savedRows = ArgumentCaptor.captor();
+        verify(userVocabularyRepository).saveAll(savedRows.capture());
+        assertThat(savedRows.getValue()).singleElement().satisfies(row -> {
+            assertThat(row.getWordEntry()).isSameAs(world);
+            assertThat(row.getTargetLanguage()).isEqualTo(TargetLanguage.DE);
+            assertThat(row.getStatus()).isEqualTo(VocabularyStatus.KNOWN);
+        });
+    }
+
+    @Test
+    void assignStatusToLemmas_returnsEmptyList_whenNoLemmaHasAWordEntry() {
+        // GIVEN lemmas that were never processed (the repository mock finds no word entries)
+        List<String> lemmas = List.of("missing");
+
+        // WHEN
+        List<String> addedLemmas = vocabularyService.assignStatusToLemmas(
+                USER_ID, lemmas, SourceLanguage.EN, TargetLanguage.DE, VocabularyStatus.UNKNOWN);
+
+        // THEN nothing is added and the vocabulary is not even queried
+        assertThat(addedLemmas).isEmpty();
+        verifyNoInteractions(userVocabularyRepository, appUserRepository);
+    }
+
+    @Test
     void deleteStatus_deletesVocabularyRow_whenWordHasAnEntry() {
         // GIVEN a processed word
         WordEntry hello = givenStoredWordEntry("hello");
@@ -146,6 +188,34 @@ class VocabularyServiceTest {
         assertThat(result.tokens())
                 .extracting(TextToken::status)
                 .containsExactly(VocabularyStatus.REVIEW, null, VocabularyStatus.REVIEW);
+    }
+
+    @Test
+    void attachStatuses_doesNotQueryVocabulary_whenNoWordEntryExists() {
+        // GIVEN a word without a word entry (the repository mock finds none)
+        ProcessedText processedText = new ProcessedText("Hello", List.of(new TextToken(0, 5, "hello", "hallo", null)));
+
+        // WHEN
+        ProcessedText result = vocabularyService.attachStatuses(
+                processedText, SourceLanguage.EN, TargetLanguage.DE, USER_ID);
+
+        // THEN the word stays untracked and the user's vocabulary is not queried
+        assertThat(result.tokens()).extracting(TextToken::status).containsOnlyNulls();
+        verifyNoInteractions(userVocabularyRepository);
+    }
+
+    @Test
+    void attachStatuses_doesNotQueryDatabase_whenTextHasNoTokens() {
+        // GIVEN
+        ProcessedText processedText = new ProcessedText("   ", List.of());
+
+        // WHEN
+        ProcessedText result = vocabularyService.attachStatuses(
+                processedText, SourceLanguage.EN, TargetLanguage.DE, USER_ID);
+
+        // THEN
+        assertThat(result.tokens()).isEmpty();
+        verifyNoInteractions(wordEntryRepository, userVocabularyRepository);
     }
 
     @Test

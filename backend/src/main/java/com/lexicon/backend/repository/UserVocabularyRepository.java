@@ -7,6 +7,7 @@ import com.lexicon.backend.enums.VocabularyStatus;
 import com.lexicon.backend.model.UserVocabulary;
 import com.lexicon.backend.model.WordEntry;
 import org.springframework.data.jpa.repository.JpaRepository;
+import org.springframework.data.jpa.repository.Modifying;
 import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.query.Param;
 
@@ -24,6 +25,20 @@ public interface UserVocabularyRepository extends JpaRepository<UserVocabulary, 
 
     void deleteByAppUserIdAndWordEntryAndTargetLanguage(
             Long appUserId, WordEntry wordEntry, TargetLanguage targetLanguage);
+
+    // A single bulk DELETE statement instead of loading and deleting every row one by one.
+    // A subquery is used because HQL does not allow joins in DELETE.
+    @Modifying
+    @Query("""
+            delete from UserVocabulary userVocabulary
+            where userVocabulary.appUser.id = :appUserId
+              and userVocabulary.targetLanguage = :targetLanguage
+              and userVocabulary.wordEntry in (select wordEntry from WordEntry wordEntry
+                                               where wordEntry.language = :sourceLanguage)
+            """)
+    void deleteLanguagePair(@Param("appUserId") Long appUserId,
+                            @Param("sourceLanguage") SourceLanguage sourceLanguage,
+                            @Param("targetLanguage") TargetLanguage targetLanguage);
 
     @Query("""
             select new com.lexicon.backend.dto.LanguagePairStatusCount(
