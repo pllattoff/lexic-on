@@ -62,19 +62,19 @@ class AzureTranslatorClientTest {
     void translate_returnsTranslationsInInputOrder_whenResponseIsValid() {
         // GIVEN
         mockRestServiceServer
-                .expect(requestTo("http://localhost/translate?api-version=3.0&from=en&to=uk"))
+                .expect(requestTo("http://localhost/translate?api-version=3.0&from=en&to=de"))
                 .andRespond(withSuccess("""
                         [
-                          {"translations": [{"text": "РїСЂРёРІС–С‚", "to": "uk"}]},
-                          {"translations": [{"text": "СЃРІС–С‚", "to": "uk"}]}
+                          {"translations": [{"text": "Katze", "to": "de"}]},
+                          {"translations": [{"text": "Hund", "to": "de"}]}
                         ]
                         """, MediaType.APPLICATION_JSON));
 
         // WHEN
-        List<String> translations = azureTranslatorClient.translate(List.of("hello", "world"), SourceLanguage.EN, TargetLanguage.UK);
+        List<String> translations = azureTranslatorClient.translate(List.of("cat", "dog"), SourceLanguage.EN, TargetLanguage.DE);
 
         // THEN
-        assertThat(translations).containsExactly("РїСЂРёРІС–С‚", "СЃРІС–С‚");
+        assertThat(translations).containsExactly("Katze", "Hund");
     }
 
     @Test
