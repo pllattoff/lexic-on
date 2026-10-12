@@ -68,7 +68,11 @@ function DictionaryContent({ sourceLanguage, targetLanguage, status, onWordsStat
 
     // The word leaves this tab: it moves to another status or is deleted
     function removeWord(lemma: string) {
-        setWords((current) => current && current.filter((word) => word.lemma !== lemma));
+        setWords((current) => {
+            if (!current) return current;
+
+            return current.filter((word) => word.lemma !== lemma);
+        });
     }
 
     async function handleStatusChange(lemma: string, newStatus: VocabularyStatus) {

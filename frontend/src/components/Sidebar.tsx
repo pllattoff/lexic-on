@@ -36,12 +36,12 @@ export default function Sidebar({ isAuthenticated, dictionaries, onNavigate, onC
                 <nav className="flex flex-col gap-1 text-body">
                     <NavLink to="/" end onClick={onNavigate} className={mainLinkClassName}>
                         <span className="text-sky-400"><TextIcon /></span>
-                        Text
+                        <span>Text</span>
                     </NavLink>
 
                     <NavLink to="/dictionaries" end onClick={onNavigate} className={mainLinkClassName}>
                         <span className="text-violet-400"><DictionariesIcon /></span>
-                        Dictionaries
+                        <span>Dictionaries</span>
                     </NavLink>
 
                     {isAuthenticated && dictionaries && dictionaries.length > 0 && (

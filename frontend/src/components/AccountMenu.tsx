@@ -52,7 +52,7 @@ export default function AccountMenu({ currentUser, userLoading }: Readonly<Accou
                     className="flex items-center gap-2 text-sm"
                 >
                     <GithubIcon />
-                    Continue with GitHub
+                    <span>Continue with GitHub</span>
                 </a>
                 {overlay}
             </>
