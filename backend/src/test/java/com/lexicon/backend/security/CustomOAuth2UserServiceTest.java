@@ -1,5 +1,6 @@
 package com.lexicon.backend.security;
 
+import com.lexicon.backend.client.GithubApiClient;
 import com.lexicon.backend.model.AppUser;
 import com.lexicon.backend.service.AppUserService;
 import org.junit.jupiter.api.Test;

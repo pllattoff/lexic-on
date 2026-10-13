@@ -1,5 +1,6 @@
 package com.lexicon.backend.service;
 
+import com.lexicon.backend.client.AzureTranslatorClient;
 import com.lexicon.backend.dto.ProcessedText;
 import com.lexicon.backend.dto.TextToken;
 import com.lexicon.backend.enums.SourceLanguage;

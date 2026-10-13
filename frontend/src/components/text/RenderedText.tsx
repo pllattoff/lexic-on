@@ -1,6 +1,8 @@
 import type { MouseEvent, ReactNode } from "react";
-import { STATUS_STYLES, UNTRACKED_STYLES, type HighlightKey } from "../lib/vocabulary.ts";
-import type { ProcessedText, TextToken, VocabularyStatus } from "../types/text.ts";
+import type { HighlightKey } from "../../lib/vocabulary.ts";
+import { STATUS_STYLES, UNTRACKED_STYLES } from "../../lib/vocabularyStyles.ts";
+import type { ProcessedText, TextToken } from "../../types/text.ts";
+import type { VocabularyStatus } from "../../types/vocabulary.ts";
 
 // Determine the CSS classes of a word based on its vocabulary status and the highlights switched on in the stats bar
 function wordClassName(status: VocabularyStatus | null, hiddenHighlights: ReadonlySet<HighlightKey>): string {

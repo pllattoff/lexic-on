@@ -1,8 +1,8 @@
 import { useEffect, useState } from "react";
-import GithubIcon from "./icons/GithubIcon.tsx";
-import LoadingOverlay from "./LoadingOverlay.tsx";
-import { logout } from "../api/authApi.ts";
-import type { CurrentUser } from "../types/auth.ts";
+import { logout } from "../../api/authApi.ts";
+import GithubIcon from "../icons/GithubIcon.tsx";
+import LoadingOverlay from "../ui/LoadingOverlay.tsx";
+import type { CurrentUser } from "../../types/auth.ts";
 
 type AccountMenuProps = {
     currentUser: CurrentUser | null;

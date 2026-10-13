@@ -1,9 +1,10 @@
 import { useCallback, useRef, useState } from "react";
-import { useDismiss } from "../hooks/useDismiss.ts";
-import { UNTRACKED_STYLES, VOCABULARY_STATUSES } from "../lib/vocabulary.ts";
-import type { VocabularyStatus } from "../types/text.ts";
-import ChevronDownIcon from "./icons/ChevronDownIcon.tsx";
-import StatusButton from "./StatusButton.tsx";
+import ChevronDownIcon from "../icons/ChevronDownIcon.tsx";
+import StatusButton from "../ui/StatusButton.tsx";
+import { useDismiss } from "../../hooks/useDismiss.ts";
+import { VOCABULARY_STATUSES } from "../../lib/vocabulary.ts";
+import { UNTRACKED_STYLES } from "../../lib/vocabularyStyles.ts";
+import type { VocabularyStatus } from "../../types/vocabulary.ts";
 
 type UntrackedTileProps = {
     count: number;

@@ -1,13 +1,8 @@
 import UntrackedTile from "./UntrackedTile.tsx";
-import {
-    getUntrackedLemmas,
-    STATUS_LABELS,
-    STATUS_STYLES,
-    STATUS_TILE_CLASSNAME,
-    VOCABULARY_STATUSES,
-    type HighlightKey,
-} from "../lib/vocabulary.ts";
-import type { TextToken, VocabularyStatus } from "../types/text.ts";
+import { getUntrackedLemmas, STATUS_LABELS, VOCABULARY_STATUSES, type HighlightKey } from "../../lib/vocabulary.ts";
+import { STATUS_STYLES, STATUS_TILE_CLASSNAME } from "../../lib/vocabularyStyles.ts";
+import type { TextToken } from "../../types/text.ts";
+import type { VocabularyStatus } from "../../types/vocabulary.ts";
 
 type VocabularyStatsBarProps = {
     tokens: TextToken[];

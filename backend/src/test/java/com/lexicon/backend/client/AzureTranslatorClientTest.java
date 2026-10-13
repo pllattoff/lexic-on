@@ -1,4 +1,4 @@
-package com.lexicon.backend.service;
+package com.lexicon.backend.client;
 
 import com.lexicon.backend.enums.SourceLanguage;
 import com.lexicon.backend.enums.TargetLanguage;
@@ -62,19 +62,19 @@ class AzureTranslatorClientTest {
     void translate_returnsTranslationsInInputOrder_whenResponseIsValid() {
         // GIVEN
         mockRestServiceServer
-                .expect(requestTo("http://localhost/translate?api-version=3.0&from=en&to=uk"))
+                .expect(requestTo("http://localhost/translate?api-version=3.0&from=en&to=de"))
                 .andRespond(withSuccess("""
                         [
-                          {"translations": [{"text": "привіт", "to": "uk"}]},
-                          {"translations": [{"text": "світ", "to": "uk"}]}
+                          {"translations": [{"text": "Katze", "to": "de"}]},
+                          {"translations": [{"text": "Hund", "to": "de"}]}
                         ]
                         """, MediaType.APPLICATION_JSON));
 
         // WHEN
-        List<String> translations = azureTranslatorClient.translate(List.of("hello", "world"), SourceLanguage.EN, TargetLanguage.UK);
+        List<String> translations = azureTranslatorClient.translate(List.of("cat", "dog"), SourceLanguage.EN, TargetLanguage.DE);
 
         // THEN
-        assertThat(translations).containsExactly("привіт", "світ");
+        assertThat(translations).containsExactly("Katze", "Hund");
     }
 
     @Test

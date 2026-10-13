@@ -1,6 +1,6 @@
 import { fetchWithCsrf } from "../lib/csrf.ts";
-import type { ProcessedText } from "../types/text.ts";
 import type { SourceLanguage, TargetLanguage } from "../lib/languages.ts";
+import type { ProcessedText } from "../types/text.ts";
 
 export async function processText(
     text: string,

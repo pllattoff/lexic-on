@@ -1,4 +1,4 @@
-package com.lexicon.backend.service;
+package com.lexicon.backend.client;
 
 import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 import com.lexicon.backend.enums.SourceLanguage;

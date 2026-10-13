@@ -1,12 +1,13 @@
 import { useState } from "react";
 import { Link } from "react-router";
-import CircleButton from "./CircleButton.tsx";
-import ConfirmDialog from "./ConfirmDialog.tsx";
-import TrashIcon from "./icons/TrashIcon.tsx";
 import { deleteDictionary } from "../api/dictionaryApi.ts";
+import TrashIcon from "../components/icons/TrashIcon.tsx";
+import CircleButton from "../components/ui/CircleButton.tsx";
+import ConfirmDialog from "../components/ui/ConfirmDialog.tsx";
 import { dictionaryPath, dictionaryStatusPath } from "../lib/dictionaryRoutes.ts";
 import { LANGUAGE_LABELS, type SourceLanguage, type TargetLanguage } from "../lib/languages.ts";
-import { STATUS_LABELS, STATUS_STYLES, STATUS_TILE_CLASSNAME, VOCABULARY_STATUSES } from "../lib/vocabulary.ts";
+import { STATUS_LABELS, VOCABULARY_STATUSES } from "../lib/vocabulary.ts";
+import { STATUS_STYLES, STATUS_TILE_CLASSNAME } from "../lib/vocabularyStyles.ts";
 import type { DictionarySummary } from "../types/dictionary.ts";
 
 type DictionariesPageProps = {

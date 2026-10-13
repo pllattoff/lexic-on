@@ -1,8 +1,9 @@
 import { useEffect, useState } from "react";
-import { INPUT_TEXT_STORAGE_KEY } from "../constants/storage.ts";
 import type { SourceLanguage, TargetLanguage } from "../lib/languages.ts";
+import { INPUT_TEXT_STORAGE_KEY } from "../lib/storage.ts";
 import { DEFAULT_HIDDEN_HIGHLIGHTS, type HighlightKey } from "../lib/vocabulary.ts";
-import type { ProcessedText, VocabularyStatus } from "../types/text.ts";
+import type { ProcessedText } from "../types/text.ts";
+import type { VocabularyStatus } from "../types/vocabulary.ts";
 
 // The current text of the user.
 // Manages the text-related states shared across pages, preserving them when navigating between sections.
