@@ -1,0 +1,20 @@
+# Copy this file to application-local.properties and fill in your own values.
+# The local file is git-ignored. Never commit real secrets.
+
+# Database
+spring.datasource.url=jdbc:postgresql://<host>/<database>?sslmode=require
+spring.datasource.username=<user>
+spring.datasource.password=<password>
+
+# OAuth2
+spring.security.oauth2.client.registration.github.client-id=<client-id>
+spring.security.oauth2.client.registration.github.client-secret=<client-secret>
+spring.security.oauth2.client.registration.github.scope=read:user,user:email
+
+# Application
+frontend.url=http://localhost:5173
+
+# Azure Translator
+azure.translator.endpoint=https://api.cognitive.microsofttranslator.com
+azure.translator.key=<key>
+azure.translator.region=<region>
