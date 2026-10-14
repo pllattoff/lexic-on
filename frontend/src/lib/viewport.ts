@@ -5,8 +5,8 @@ export function isDesktopViewport(): boolean {
     return globalThis.matchMedia(DESKTOP_VIEWPORT_QUERY).matches;
 }
 
-// Calls the listener when the window crosses the breakpoint; returns a function that unsubscribes
-export function onDesktopViewportChange(listener: (isDesktop: boolean) => void): () => void {
+// Calls the listener when the viewport crosses the desktop breakpoint
+export function subscribeToDesktopViewport(listener: (isDesktop: boolean) => void): () => void {
     const mediaQuery = globalThis.matchMedia(DESKTOP_VIEWPORT_QUERY);
 
     function handleChange(event: MediaQueryListEvent) {
@@ -15,5 +15,6 @@ export function onDesktopViewportChange(listener: (isDesktop: boolean) => void):
 
     mediaQuery.addEventListener("change", handleChange);
 
+    // Return a cleanup function that React calls when the component unmounts to remove the event listener
     return () => mediaQuery.removeEventListener("change", handleChange);
 }

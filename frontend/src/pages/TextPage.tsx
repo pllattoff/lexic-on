@@ -9,8 +9,9 @@ import WordPopup from "../components/text/WordPopup.tsx";
 import CircleButton from "../components/ui/CircleButton.tsx";
 import ConfirmDialog from "../components/ui/ConfirmDialog.tsx";
 import LoadingDots from "../components/ui/LoadingDots.tsx";
-import { useStatusRequest } from "../hooks/useStatusRequest.ts";
+import { useAsyncAction } from "../hooks/useAsyncAction.ts";
 import type { TextSession } from "../hooks/useTextSession.ts";
+import { REQUEST_ERRORS } from "../lib/requestErrors.ts";
 import { getUntrackedLemmas } from "../lib/vocabulary.ts";
 import type { WordsStatusChangeHandler } from "../types/dictionary.ts";
 import type { ProcessedText, TextToken } from "../types/text.ts";
@@ -55,24 +56,33 @@ export default function TextPage({ isAuthenticated, textSession, onWordsStatusCh
         toggleHighlight,
         clearText,
     } = textSession;
+
     const [loading, setLoading] = useState(false);
     const [wordPopupState, setWordPopupState] = useState<WordPopupState | null>(null);
     const [clearConfirmOpen, setClearConfirmOpen] = useState(false);
-    const { pending: statusPending, errorMessage: statusError, runStatusRequest, clearError: clearStatusError } = useStatusRequest();
-    // A separate state for adding all untracked words, so its loading and error do not show up in the word popup
+
+    // Object destructuring with property renaming
+    // Loading and error states for modifying a single word's status.
     const {
-        pending: bulkPending,
-        errorMessage: bulkError,
-        runStatusRequest: runBulkStatusRequest,
-    } = useStatusRequest("Couldn't add the words. Try again.");
+        pending: modifyStatusPending,
+        errorMessage: modifyStatusError,
+        runAction: runModifyStatus,
+        clearError: clearModifyStatusError,
+    } = useAsyncAction();
+
+    // Loading and error states for saving statuses of all untracked words.
+    const {
+        pending: saveStatusesPending,
+        errorMessage: saveStatusesError,
+        runAction: runSaveStatuses,
+    } = useAsyncAction();
+
     // Store a reference to the textarea DOM element for direct DOM manipulation
     const textareaRef = useRef<HTMLTextAreaElement | null>(null);
 
     const isEditing = processedText === null;
 
-    // Grow the textarea to fit its content instead of a fixed row count.
-    // Also re-runs on isEditing so it fits existing text right when the textarea (re)mounts,
-    // not just on the next keystroke.
+    // Resize the textarea to fit its content whenever the text or editing mode changes.
     // (useLayoutEffect - runs after the DOM is updated but before the browser paints)
     useLayoutEffect(() => {
         const textarea = textareaRef.current;
@@ -82,6 +92,7 @@ export default function TextPage({ isAuthenticated, textSession, onWordsStatusCh
         textarea.style.height = `${textarea.scrollHeight}px`;
     }, [inputText, isEditing]);
 
+    // Process the input text
     async function handleSubmit(e: SubmitEvent<HTMLFormElement>) {
         e.preventDefault();
         setLoading(true);
@@ -94,16 +105,16 @@ export default function TextPage({ isAuthenticated, textSession, onWordsStatusCh
         }
     }
 
-    // Add every untracked word of the text to the vocabulary with one status; returns whether it succeeded
+    // Save a status for every untracked word in the text
     async function handleAddAllUntracked(status: VocabularyStatus): Promise<boolean> {
         if (!processedText) return false;
 
         const untrackedLemmas = getUntrackedLemmas(processedText.tokens);
 
-        return await runBulkStatusRequest(async () => {
+        return await runSaveStatuses(async () => {
             const addedLemmas = await assignStatusToLemmas(untrackedLemmas, sourceLanguage, targetLanguage, status);
             onWordsStatusChange(sourceLanguage, targetLanguage, addedLemmas, status);
-        });
+        }, REQUEST_ERRORS.saveStatuses);
     }
 
     function handleClearConfirm() {
@@ -115,6 +126,7 @@ export default function TextPage({ isAuthenticated, textSession, onWordsStatusCh
         setProcessedText(null);
     }
 
+    // Open the word popup and start tracking an untracked word when necessary
     async function handleWordClick(event: MouseEvent<HTMLSpanElement>, token: TextToken) {
         const rect = event.currentTarget.getBoundingClientRect();
         setWordPopupState({
@@ -123,9 +135,8 @@ export default function TextPage({ isAuthenticated, textSession, onWordsStatusCh
             top: rect.bottom + 6,
             left: rect.left,
         });
-        clearStatusError();
+        clearModifyStatusError();
 
-        // The first click on a word starts tracking it: clicking means it was not known well enough to skip
         if (isAuthenticated && token.status === null) {
             await handleStatusChange(token.lemma, "UNKNOWN");
         }
@@ -133,23 +144,23 @@ export default function TextPage({ isAuthenticated, textSession, onWordsStatusCh
 
     // Update the status on the backend first, then update it in the text and the dictionaries
     async function handleStatusChange(lemma: string, status: VocabularyStatus) {
-        await runStatusRequest(async () => {
+        await runModifyStatus(async () => {
             const savedStatus = await saveVocabularyStatus(lemma, sourceLanguage, targetLanguage, status);
             onWordsStatusChange(sourceLanguage, targetLanguage, [lemma], savedStatus);
-        });
+        }, REQUEST_ERRORS.saveStatus);
     }
 
     async function handleStatusDelete(lemma: string) {
-        await runStatusRequest(async () => {
+        await runModifyStatus(async () => {
             await deleteVocabularyStatus(lemma, sourceLanguage, targetLanguage);
             onWordsStatusChange(sourceLanguage, targetLanguage, [lemma], null);
-        });
+        }, REQUEST_ERRORS.deleteStatus);
     }
 
     return (
         <div className="mx-auto max-w-3xl p-4">
             <form onSubmit={handleSubmit} className="flex flex-col items-start gap-3">
-                {/* The language selector stays centered; the clear button sits at the right edge of the row */}
+                {/* Keep the language selector centered and position the clear button on the right. */}
                 <div className="relative flex w-full justify-center">
                     <LanguageSelector
                         isEditing={isEditing}
@@ -175,8 +186,8 @@ export default function TextPage({ isAuthenticated, textSession, onWordsStatusCh
                         tokens={processedText.tokens}
                         hiddenHighlights={hiddenHighlights}
                         isAuthenticated={isAuthenticated}
-                        addAllPending={bulkPending}
-                        addAllError={bulkError}
+                        saveStatusesPending={saveStatusesPending}
+                        saveStatusesError={saveStatusesError}
                         onHighlightToggle={toggleHighlight}
                         onAddAllUntracked={handleAddAllUntracked}
                     />
@@ -239,8 +250,8 @@ export default function TextPage({ isAuthenticated, textSession, onWordsStatusCh
                     translation={wordPopupState.translation}
                     status={findLemmaStatus(processedText, wordPopupState.lemma)}
                     isAuthenticated={isAuthenticated}
-                    pending={statusPending}
-                    errorMessage={statusError}
+                    pending={modifyStatusPending}
+                    errorMessage={modifyStatusError}
                     top={wordPopupState.top}
                     left={wordPopupState.left}
                     onStatusChange={(status) => handleStatusChange(wordPopupState.lemma, status)}

@@ -24,8 +24,8 @@ export async function saveVocabularyStatus(
     return body.status;
 }
 
-// Adds the words the user does not track yet, already tracked ones keep their status.
-// Returns the lemmas that were actually added.
+// Gives the status to the words the user does not track yet, already tracked ones keep their status.
+// Returns the lemmas that were actually given the status.
 export async function assignStatusToLemmas(
     lemmas: string[],
     sourceLanguage: SourceLanguage,
@@ -39,7 +39,7 @@ export async function assignStatusToLemmas(
     });
 
     if (!res.ok) {
-        throw new Error(`Adding vocabulary words failed: ${res.status}`);
+        throw new Error(`Saving vocabulary statuses failed: ${res.status}`);
     }
 
     const body: { lemmas: string[] } = await res.json();

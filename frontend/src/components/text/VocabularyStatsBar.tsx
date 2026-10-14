@@ -8,8 +8,8 @@ type VocabularyStatsBarProps = {
     tokens: TextToken[];
     hiddenHighlights: ReadonlySet<HighlightKey>;
     isAuthenticated: boolean;
-    addAllPending: boolean;
-    addAllError: string | null;
+    saveStatusesPending: boolean;
+    saveStatusesError: string | null;
     onHighlightToggle: (key: HighlightKey) => void;
     // Resolves to whether the words were added
     onAddAllUntracked: (status: VocabularyStatus) => Promise<boolean>;
@@ -20,8 +20,8 @@ export default function VocabularyStatsBar({
                                                tokens,
                                                hiddenHighlights,
                                                isAuthenticated,
-                                               addAllPending,
-                                               addAllError,
+                                               saveStatusesPending,
+                                               saveStatusesError,
                                                onHighlightToggle,
                                                onAddAllUntracked,
                                            }: Readonly<VocabularyStatsBarProps>) {
@@ -43,8 +43,8 @@ export default function VocabularyStatsBar({
                 percentage={percentage(untrackedCount)}
                 highlighted={!hiddenHighlights.has("UNTRACKED")}
                 isAuthenticated={isAuthenticated}
-                pending={addAllPending}
-                errorMessage={addAllError}
+                pending={saveStatusesPending}
+                errorMessage={saveStatusesError}
                 onToggle={() => onHighlightToggle("UNTRACKED")}
                 onAddAll={onAddAllUntracked}
             />

@@ -4,8 +4,10 @@ import { deleteDictionary } from "../api/dictionaryApi.ts";
 import TrashIcon from "../components/icons/TrashIcon.tsx";
 import CircleButton from "../components/ui/CircleButton.tsx";
 import ConfirmDialog from "../components/ui/ConfirmDialog.tsx";
+import { useAsyncAction } from "../hooks/useAsyncAction.ts";
 import { dictionaryPath, dictionaryStatusPath } from "../lib/dictionaryRoutes.ts";
 import { LANGUAGE_LABELS, type SourceLanguage, type TargetLanguage } from "../lib/languages.ts";
+import { REQUEST_ERRORS } from "../lib/requestErrors.ts";
 import { STATUS_LABELS, VOCABULARY_STATUSES } from "../lib/vocabulary.ts";
 import { STATUS_STYLES, STATUS_TILE_CLASSNAME } from "../lib/vocabularyStyles.ts";
 import type { DictionarySummary } from "../types/dictionary.ts";
@@ -22,27 +24,19 @@ function countWords({ wordCounts }: DictionarySummary): number {
 
 export default function DictionariesPage({ dictionaries, onDictionaryDeleted }: Readonly<DictionariesPageProps>) {
     const [dictionaryToDelete, setDictionaryToDelete] = useState<DictionarySummary | null>(null);
-    const [deletePending, setDeletePending] = useState(false);
-    const [deleteError, setDeleteError] = useState<string | null>(null);
+    const { pending: deletePending, errorMessage: deleteError, runAction, clearError: clearDeleteError } = useAsyncAction();
 
     function openDeleteDialog(dictionary: DictionarySummary) {
-        setDeleteError(null);
+        clearDeleteError();
         setDictionaryToDelete(dictionary);
     }
 
     async function handleDeleteConfirm(dictionary: DictionarySummary) {
-        setDeletePending(true);
-        setDeleteError(null);
-
-        try {
+        await runAction(async () => {
             await deleteDictionary(dictionary.sourceLanguage, dictionary.targetLanguage);
             setDictionaryToDelete(null);
             onDictionaryDeleted(dictionary.sourceLanguage, dictionary.targetLanguage);
-        } catch {
-            setDeleteError("Couldn't delete the dictionary. Try again.");
-        } finally {
-            setDeletePending(false);
-        }
+        }, REQUEST_ERRORS.deleteDictionary);
     }
 
     return (
