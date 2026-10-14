@@ -5,9 +5,10 @@ import { deleteVocabularyStatus, saveVocabularyStatus } from "../api/vocabularyA
 import ArrowLeftIcon from "../components/icons/ArrowLeftIcon.tsx";
 import TrashIcon from "../components/icons/TrashIcon.tsx";
 import StatusButton from "../components/ui/StatusButton.tsx";
-import { useStatusRequest } from "../hooks/useStatusRequest.ts";
+import { useAsyncAction } from "../hooks/useAsyncAction.ts";
 import { dictionaryStatusPath, parseLanguagePair, parseStatus } from "../lib/dictionaryRoutes.ts";
 import { LANGUAGE_LABELS, type SourceLanguage, type TargetLanguage } from "../lib/languages.ts";
+import { REQUEST_ERRORS } from "../lib/requestErrors.ts";
 import { STATUS_LABELS, VOCABULARY_STATUSES } from "../lib/vocabulary.ts";
 import { STATUS_STYLES, STATUS_TILE_CLASSNAME } from "../lib/vocabularyStyles.ts";
 import NotFoundPage from "./NotFoundPage.tsx";
@@ -41,10 +42,9 @@ type DictionaryContentProps = {
 };
 
 function DictionaryContent({ sourceLanguage, targetLanguage, status, onWordsStatusChange }: Readonly<DictionaryContentProps>) {
-    // null until the words are loaded
     const [words, setWords] = useState<DictionaryWord[] | null>(null);
     const [loadError, setLoadError] = useState(false);
-    const { pending, errorMessage, runStatusRequest } = useStatusRequest();
+    const { pending, errorMessage, runAction } = useAsyncAction();
 
     useEffect(() => {
         // Ignore the response if the page was left or the tab was changed meanwhile
@@ -67,7 +67,7 @@ function DictionaryContent({ sourceLanguage, targetLanguage, status, onWordsStat
         };
     }, [sourceLanguage, targetLanguage, status]);
 
-    // The word leaves this tab: it moves to another status or is deleted
+    // Remove the word from the local list when its status changes or it is deleted
     function removeWord(lemma: string) {
         setWords((current) => {
             if (!current) return current;
@@ -77,19 +77,19 @@ function DictionaryContent({ sourceLanguage, targetLanguage, status, onWordsStat
     }
 
     async function handleStatusChange(lemma: string, newStatus: VocabularyStatus) {
-        await runStatusRequest(async () => {
+        await runAction(async () => {
             await saveVocabularyStatus(lemma, sourceLanguage, targetLanguage, newStatus);
             removeWord(lemma);
             onWordsStatusChange(sourceLanguage, targetLanguage, [lemma], newStatus);
-        });
+        }, REQUEST_ERRORS.saveStatus);
     }
 
     async function handleDelete(lemma: string) {
-        await runStatusRequest(async () => {
+        await runAction(async () => {
             await deleteVocabularyStatus(lemma, sourceLanguage, targetLanguage);
             removeWord(lemma);
             onWordsStatusChange(sourceLanguage, targetLanguage, [lemma], null);
-        });
+        }, REQUEST_ERRORS.deleteStatus);
     }
 
     return (

@@ -14,33 +14,38 @@ type SidebarProps = {
     onClose: () => void;
 };
 
+// Overlays the content on mobile
+const SIDEBAR_BASE_CLASSNAME = "fixed inset-y-0 left-0 z-30 w-56 shrink-0 overflow-y-auto border-r border-outline bg-surface p-4";
+
+// Stays sticky beside the content from md up
+const SIDEBAR_DESKTOP_CLASSNAME = "md:sticky md:top-header md:bottom-auto md:z-auto md:h-[calc(100vh-var(--spacing-header))] md:self-start md:bg-transparent";
+
 // The left border is transparent by default, so the active marker appears without shifting the text
-const LINK_CLASSNAME = "flex items-center gap-2 rounded-r-md border-l-2 px-3 py-1.5 transition-colors";
+const NAV_LINK_CLASSNAME = "flex items-center gap-2 rounded-r-md border-l-2 px-3 py-1.5 transition-colors";
 
 // isActive is provided by React Router to indicate whether the NavLink matches the current URL
-function mainLinkClassName({ isActive }: { isActive: boolean }) {
+function mainNavLinkClassName({ isActive }: { isActive: boolean }) {
     const activeClassName = isActive
         ? "border-accent bg-surface-2 text-heading"
         : "border-transparent hover:text-heading";
 
-    return `${LINK_CLASSNAME} ${activeClassName}`;
+    return `${NAV_LINK_CLASSNAME} ${activeClassName}`;
 }
 
 export default function Sidebar({ isAuthenticated, dictionaries, onNavigate, onClose }: Readonly<SidebarProps>) {
     return (
         <>
-            {/* Behind the panel on small screens only: a click on the dimmed area closes the panel */}
+            {/* Dimmed backdrop behind the sidebar on mobile; clicking it closes the sidebar */}
             <div className="fixed inset-0 z-20 bg-black/50 md:hidden" onClick={onClose} aria-hidden="true" />
 
-            {/* A panel over the content on small screens, a column next to the content from md up */}
-            <aside className="fixed inset-y-0 left-0 z-30 w-56 shrink-0 overflow-y-auto border-r border-outline bg-surface p-4 md:sticky md:top-header md:bottom-auto md:z-auto md:h-[calc(100vh-var(--spacing-header))] md:self-start md:bg-transparent">
+            <aside className={`${SIDEBAR_BASE_CLASSNAME} ${SIDEBAR_DESKTOP_CLASSNAME}`}>
                 <nav className="flex flex-col gap-1 text-body">
-                    <NavLink to="/" end onClick={onNavigate} className={mainLinkClassName}>
+                    <NavLink to="/" end onClick={onNavigate} className={mainNavLinkClassName}>
                         <span className="text-sky-400"><TextIcon /></span>
                         <span>Text</span>
                     </NavLink>
 
-                    <NavLink to="/dictionaries" end onClick={onNavigate} className={mainLinkClassName}>
+                    <NavLink to="/dictionaries" end onClick={onNavigate} className={mainNavLinkClassName}>
                         <span className="text-violet-400"><DictionariesIcon /></span>
                         <span>Dictionaries</span>
                     </NavLink>
@@ -70,7 +75,7 @@ function DictionaryLinks({ dictionary, onNavigate }: Readonly<{ dictionary: Dict
     return (
         <div className="flex flex-col">
             {/* Without React Router's "end" prop, this link also stays active on the pair's status pages */}
-            <NavLink to={dictionaryPath(sourceLanguage, targetLanguage)} onClick={onNavigate} className={mainLinkClassName}>
+            <NavLink to={dictionaryPath(sourceLanguage, targetLanguage)} onClick={onNavigate} className={mainNavLinkClassName}>
                 {LANGUAGE_LABELS[sourceLanguage]} → {LANGUAGE_LABELS[targetLanguage]}
             </NavLink>
 
@@ -88,7 +93,7 @@ function DictionaryLinks({ dictionary, onNavigate }: Readonly<{ dictionary: Dict
                                 ? STATUS_STYLES[status].navSelected
                                 : STATUS_STYLES[status].nav;
 
-                            return `${LINK_CLASSNAME} py-1 text-sm ${statusStyle}`;
+                            return `${NAV_LINK_CLASSNAME} py-1 text-sm ${statusStyle}`;
                         }}
                     >
                         {STATUS_LABELS[status]}

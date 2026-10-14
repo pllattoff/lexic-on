@@ -8,7 +8,7 @@ import type { VocabularyStatus } from "../../types/vocabulary.ts";
 
 type UntrackedTileProps = {
     count: number;
-    // The number of different words, which is what "add all" adds
+    // Number of unique lemmas added by the "Add all" action
     lemmaCount: number;
     percentage: number;
     highlighted: boolean;
@@ -34,13 +34,13 @@ export default function UntrackedTile({
                                           onAddAll,
                                       }: Readonly<UntrackedTileProps>) {
     const [popupOpen, setPopupOpen] = useState(false);
-    // Covers the tile, the chevron and the popup, so clicks on any of them are not "outside"
+    // Includes the tile and popup, so clicks inside them are not treated as outside clicks
     const containerRef = useRef<HTMLDivElement | null>(null);
 
     const closePopup = useCallback(() => setPopupOpen(false), []);
     useDismiss(containerRef, popupOpen, closePopup);
 
-    // The popup stays open while the request runs and when it fails, so the error can be shown
+    // Keep the popup open while the request is pending or fails
     async function handleAddAll(status: VocabularyStatus) {
         const added = await onAddAll(status);
         if (added) setPopupOpen(false);

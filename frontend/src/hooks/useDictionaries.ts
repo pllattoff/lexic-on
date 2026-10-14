@@ -6,27 +6,30 @@ import type { DictionarySummary } from "../types/dictionary.ts";
 
 export type VocabularyChange = "saved" | "deleted";
 
-// The user's dictionaries for the sidebar and the Dictionaries pages.
-// null until the first response arrives
+// Manages the user's dictionaries and reloads them when needed
 export function useDictionaries(isAuthenticated: boolean) {
     const [dictionaries, setDictionaries] = useState<DictionarySummary[] | null>(null);
-    // Changing it makes the effect below load the dictionaries again
+    // Incrementing this counter triggers the effect to reload the dictionaries
     const [reloadCounter, setReloadCounter] = useState(0);
     const { pathname } = useLocation();
 
-    // The address changes on every move inside the Dictionaries section, so the counts are fresh on each visit
+    // Track navigation in the Dictionaries section to refresh dictionary counts when the path changes
     const dictionariesPathname = pathname.startsWith("/dictionaries") ? pathname : null;
 
     useEffect(() => {
         if (!isAuthenticated) return;
 
-        // Ignore the response if a newer request was started meanwhile
-        let ignore = false;
+        // If a new request starts before the previous one finishes, ignore the previous response
+        // to prevent outdated data from overwriting newer data.
+        let ignoreResponse = false;
 
         async function loadDictionaries() {
             try {
                 const loadedDictionaries = await getDictionaries();
-                if (!ignore) setDictionaries(loadedDictionaries);
+
+                if (!ignoreResponse) {
+                    setDictionaries(loadedDictionaries);
+                }
             } catch (error) {
                 console.error("Failed to load dictionaries:", error);
             }
@@ -34,23 +37,24 @@ export function useDictionaries(isAuthenticated: boolean) {
 
         void loadDictionaries();
 
+        // Cleanup function returned to React to mark the previous request's response as outdated
         return () => {
-            ignore = true;
+            ignoreResponse = true;
         };
     }, [isAuthenticated, dictionariesPathname, reloadCounter]);
 
-    // A new language pair appears only with its first saved word, and a pair can disappear only
-    // when a word is deleted: reload in these two cases and skip the request otherwise
+    // Reload the dictionaries when a new language pair is created or a word is deleted.
+    // A pair is created when its first word is saved.
     function handleVocabularyChange(
         sourceLanguage: SourceLanguage,
         targetLanguage: TargetLanguage,
         change: VocabularyChange,
     ) {
-        const isKnownPair = dictionaries?.some(
+        const pairExists = dictionaries?.some(
             (dictionary) => dictionary.sourceLanguage === sourceLanguage && dictionary.targetLanguage === targetLanguage,
         );
 
-        if (change === "deleted" || !isKnownPair) {
+        if (change === "deleted" || !pairExists) {
             setReloadCounter((counter) => counter + 1);
         }
     }
