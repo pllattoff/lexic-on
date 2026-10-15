@@ -1,4 +1,5 @@
-import { STATUS_LABELS } from "../../lib/vocabulary.ts";
+import { useTranslation } from "react-i18next";
+import { STATUS_LABEL_KEYS } from "../../lib/vocabulary.ts";
 import { STATUS_STYLES } from "../../lib/vocabularyStyles.ts";
 import type { VocabularyStatus } from "../../types/vocabulary.ts";
 
@@ -24,6 +25,7 @@ export default function StatusButton({
                                          dimmed = false,
                                          onClick,
                                      }: Readonly<StatusButtonProps>) {
+    const { t } = useTranslation();
     const statusClassName = selected ? STATUS_STYLES[status].segmentSelected : STATUS_STYLES[status].segment;
 
     return (
@@ -33,7 +35,7 @@ export default function StatusButton({
             onClick={onClick}
             className={`${BUTTON_CLASSNAME} ${dimmed ? "opacity-40" : ""} ${statusClassName}`}
         >
-            {"> "}{STATUS_LABELS[status]}
+            {"> "}{t(STATUS_LABEL_KEYS[status])}
         </button>
     );
 }

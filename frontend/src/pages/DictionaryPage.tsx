@@ -1,4 +1,5 @@
 import { useEffect, useState } from "react";
+import { useTranslation } from "react-i18next";
 import { Link, NavLink, useParams } from "react-router";
 import { getDictionaryWords } from "../api/dictionaryApi.ts";
 import { deleteVocabularyStatus, saveVocabularyStatus } from "../api/vocabularyApi.ts";
@@ -8,8 +9,9 @@ import StatusButton from "../components/ui/StatusButton.tsx";
 import { useAsyncAction } from "../hooks/useAsyncAction.ts";
 import { dictionaryStatusPath, parseLanguagePair, parseStatus } from "../lib/dictionaryRoutes.ts";
 import { LANGUAGE_LABELS, type SourceLanguage, type TargetLanguage } from "../lib/languages.ts";
+import { PAGE_CONTAINER_CLASSNAME } from "../lib/pageStyles.ts";
 import { REQUEST_ERRORS } from "../lib/requestErrors.ts";
-import { STATUS_LABELS, VOCABULARY_STATUSES } from "../lib/vocabulary.ts";
+import { STATUS_LABEL_KEYS, VOCABULARY_STATUSES } from "../lib/vocabulary.ts";
 import { STATUS_STYLES, STATUS_TILE_CLASSNAME } from "../lib/vocabularyStyles.ts";
 import NotFoundPage from "./NotFoundPage.tsx";
 import type { DictionaryWord, WordsStatusChangeHandler } from "../types/dictionary.ts";
@@ -42,6 +44,7 @@ type DictionaryContentProps = {
 };
 
 function DictionaryContent({ sourceLanguage, targetLanguage, status, onWordsStatusChange }: Readonly<DictionaryContentProps>) {
+    const { t } = useTranslation();
     const [words, setWords] = useState<DictionaryWord[] | null>(null);
     const [loadError, setLoadError] = useState(false);
     const { pending, errorMessage, runAction } = useAsyncAction();
@@ -81,7 +84,7 @@ function DictionaryContent({ sourceLanguage, targetLanguage, status, onWordsStat
             await saveVocabularyStatus(lemma, sourceLanguage, targetLanguage, newStatus);
             removeWord(lemma);
             onWordsStatusChange(sourceLanguage, targetLanguage, [lemma], newStatus);
-        }, REQUEST_ERRORS.saveStatus);
+        }, t(REQUEST_ERRORS.saveStatus));
     }
 
     async function handleDelete(lemma: string) {
@@ -89,13 +92,13 @@ function DictionaryContent({ sourceLanguage, targetLanguage, status, onWordsStat
             await deleteVocabularyStatus(lemma, sourceLanguage, targetLanguage);
             removeWord(lemma);
             onWordsStatusChange(sourceLanguage, targetLanguage, [lemma], null);
-        }, REQUEST_ERRORS.deleteStatus);
+        }, t(REQUEST_ERRORS.deleteStatus));
     }
 
     return (
-        <div className="mx-auto max-w-3xl p-4">
+        <div className={PAGE_CONTAINER_CLASSNAME}>
             <div className="mb-4 flex items-center gap-3">
-                <Link to="/dictionaries" aria-label="Back to dictionaries" title="Back to dictionaries"
+                <Link to="/dictionaries" aria-label={t("dictionary.backToDictionaries")} title={t("dictionary.backToDictionaries")}
                       className="rounded-md p-1 text-body hover:text-heading">
                     <ArrowLeftIcon />
                 </Link>
@@ -113,14 +116,14 @@ function DictionaryContent({ sourceLanguage, targetLanguage, status, onWordsStat
                             `${STATUS_TILE_CLASSNAME} ${isActive ? STATUS_STYLES[tabStatus].tabSelected : STATUS_STYLES[tabStatus].tab}`
                         }
                     >
-                        {STATUS_LABELS[tabStatus]}
+                        {t(STATUS_LABEL_KEYS[tabStatus])}
                     </NavLink>
                 ))}
             </nav>
 
-            {loadError && <p role="alert" className="text-error">Couldn't load the words. Try again.</p>}
+            {loadError && <p role="alert" className="text-error">{t("dictionary.loadError")}</p>}
 
-            {words?.length === 0 && <p>No words with this status yet.</p>}
+            {words?.length === 0 && <p>{t("dictionary.empty")}</p>}
 
             <ul>
                 {words?.map((word) => (
@@ -144,8 +147,8 @@ function DictionaryContent({ sourceLanguage, targetLanguage, status, onWordsStat
                                 type="button"
                                 disabled={pending}
                                 onClick={() => handleDelete(word.lemma)}
-                                aria-label="Remove from vocabulary"
-                                title="Remove from vocabulary"
+                                aria-label={t("common.removeFromVocabulary")}
+                                title={t("common.removeFromVocabulary")}
                                 className="rounded-md p-1 text-body/60 transition-colors hover:text-heading focus-visible:text-heading disabled:cursor-not-allowed"
                             >
                                 <TrashIcon />

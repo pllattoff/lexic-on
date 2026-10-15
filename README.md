@@ -13,6 +13,7 @@ This is a capstone project and is under active development.
 - **Reading without an account:** paste a text, pick the source and target language, and click any word to see its translation in a popup. Different forms of a word (`went`, `going`) are reduced to one dictionary form.
 - **Personal vocabulary:** after logging in with GitHub, mark words as Unknown, Review or Known. The text is highlighted by status, and a stats bar shows how much of it you already know.
 - **Dictionaries:** a separate section lists your words per language pair and status, where you can change a status, delete a word or add all untracked words from the current text at once.
+- **Interface languages:** the interface is available in English, German and Ukrainian. It is switched at the bottom of the sidebar; the first visit follows the browser language and the choice is remembered.
 
 ## Supported languages
 
@@ -41,6 +42,7 @@ Reading a text with words highlighted by status, a stats bar and a translation p
 **Frontend** (`frontend/`)
 - React, TypeScript, Vite
 - Tailwind CSS, React Router
+- react-i18next for the interface translations
 
 In production the frontend is built to static files and served by the Spring Boot backend as a single deployable app.
 
@@ -93,6 +95,7 @@ lexic-on/
 │       ├── components/      UI components
 │       ├── hooks/           React hooks
 │       ├── lib/             helpers
+│       ├── locales/         interface translations (en, de, uk)
 │       ├── pages/           routed pages
 │       └── types/           TypeScript types
 ├── .github/                 CI (tests, lint, SonarCloud) and deploy workflows

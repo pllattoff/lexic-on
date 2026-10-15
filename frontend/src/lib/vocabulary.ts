@@ -15,8 +15,9 @@ export type HighlightKey = VocabularyStatus | "UNTRACKED";
 // A new text starts with the untracked words not highlighted
 export const DEFAULT_HIDDEN_HIGHLIGHTS: readonly HighlightKey[] = ["UNTRACKED"];
 
-export const STATUS_LABELS: Record<VocabularyStatus, string> = {
-    UNKNOWN: "Unknown",
-    REVIEW: "Review",
-    KNOWN: "Known",
+// Translation keys of the status names; translate them with t() where they are shown
+export const STATUS_LABEL_KEYS: Record<VocabularyStatus, string> = {
+    UNKNOWN: "vocabulary.status.unknown",
+    REVIEW: "vocabulary.status.review",
+    KNOWN: "vocabulary.status.known",
 };

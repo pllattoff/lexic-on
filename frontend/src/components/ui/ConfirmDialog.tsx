@@ -1,4 +1,5 @@
 import { useEffect, useId, useRef, type SyntheticEvent } from "react";
+import { useTranslation } from "react-i18next";
 
 type ConfirmDialogProps = {
     title: string;
@@ -29,6 +30,7 @@ export default function ConfirmDialog({
                                           onConfirm,
                                           onCancel,
                                       }: Readonly<ConfirmDialogProps>) {
+    const { t } = useTranslation();
     const titleId = useId();
     const dialogRef = useRef<HTMLDialogElement | null>(null);
 
@@ -70,7 +72,7 @@ export default function ConfirmDialog({
                     onClick={onCancel}
                     className={CANCEL_BUTTON_CLASSNAME}
                 >
-                    Cancel
+                    {t("common.cancel")}
                 </button>
                 <button
                     type="button"

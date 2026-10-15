@@ -1,4 +1,5 @@
 import { useCallback, useRef, useState } from "react";
+import { useTranslation } from "react-i18next";
 import ChevronDownIcon from "../icons/ChevronDownIcon.tsx";
 import StatusButton from "../ui/StatusButton.tsx";
 import { useDismiss } from "../../hooks/useDismiss.ts";
@@ -33,6 +34,7 @@ export default function UntrackedTile({
                                           onToggle,
                                           onAddAll,
                                       }: Readonly<UntrackedTileProps>) {
+    const { t } = useTranslation();
     const [popupOpen, setPopupOpen] = useState(false);
     // Includes the tile and popup, so clicks inside them are not treated as outside clicks
     const containerRef = useRef<HTMLDivElement | null>(null);
@@ -56,8 +58,8 @@ export default function UntrackedTile({
                 {count > 0 && (
                     <button
                         type="button"
-                        aria-label="Add all untracked words to the vocabulary"
-                        title="Add untracked words to the vocabulary"
+                        aria-label={t("untracked.addAllLabel")}
+                        title={t("untracked.addAllTitle")}
                         aria-expanded={popupOpen}
                         onClick={() => setPopupOpen((open) => !open)}
                         className={`relative flex w-8 cursor-pointer items-center justify-center border-inherit text-body/60 transition hover:text-heading ${partHoverClassName}`}
@@ -73,21 +75,22 @@ export default function UntrackedTile({
 
                 <button
                     type="button"
-                    title={`${highlighted ? "Hide" : "Show"} highlighting of untracked words`}
+                    title={highlighted ? t("untracked.hideHighlighting") : t("untracked.showHighlighting")}
                     aria-pressed={highlighted}
                     onClick={onToggle}
                     className={`flex-1 cursor-pointer px-3 py-2 text-center transition ${partHoverClassName}`}
                 >
-                    <div className="font-medium">Untracked</div>
+                    <div className="font-medium">{t("untracked.label")}</div>
                     <div className="text-sm">{percentage}% ({count})</div>
                 </button>
             </div>
 
             {popupOpen && (
-                // At least as wide as the tile, wider when the buttons in a row need more room, but never wider than the screen
-                <div className="absolute left-0 top-full z-20 mt-2 w-max min-w-full max-w-[min(18rem,calc(100vw-3rem))] rounded-2xl border border-outline bg-surface-2 px-4 py-3 text-center">
+                // At least as wide as the tile and as wide as its content needs, so the text and the buttons
+                // wrap only when the content does not fit on the screen
+                <div className="absolute left-0 top-full z-20 mt-2 w-max min-w-full max-w-[calc(100vw-3rem)] rounded-2xl border border-outline bg-surface-2 px-4 py-3 text-center">
                     <div className="text-sm text-body">
-                        Add {lemmaCount} unique <span className="font-semibold text-body/60">untracked</span> {lemmaCount === 1 ? "word" : "words"}
+                        {t("untracked.addPopup", { count: lemmaCount })}
                     </div>
 
                     <div className="mt-2 flex flex-wrap items-center justify-center gap-x-3 gap-y-1 border-t border-outline pt-2">
@@ -102,7 +105,7 @@ export default function UntrackedTile({
                         ))}
                     </div>
 
-                    {!isAuthenticated && <div className="mt-2 text-sm text-body/60">Log in to track words</div>}
+                    {!isAuthenticated && <div className="mt-2 text-sm text-body/60">{t("common.loginToTrack")}</div>}
 
                     {errorMessage && (
                         <div role="alert" className="mt-2 text-sm text-error">

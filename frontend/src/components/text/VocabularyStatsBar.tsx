@@ -1,5 +1,6 @@
+import { useTranslation } from "react-i18next";
 import UntrackedTile from "./UntrackedTile.tsx";
-import { getUntrackedLemmas, STATUS_LABELS, VOCABULARY_STATUSES, type HighlightKey } from "../../lib/vocabulary.ts";
+import { getUntrackedLemmas, STATUS_LABEL_KEYS, VOCABULARY_STATUSES, type HighlightKey } from "../../lib/vocabulary.ts";
 import { STATUS_STYLES, STATUS_TILE_CLASSNAME } from "../../lib/vocabularyStyles.ts";
 import type { TextToken } from "../../types/text.ts";
 import type { VocabularyStatus } from "../../types/vocabulary.ts";
@@ -25,6 +26,8 @@ export default function VocabularyStatsBar({
                                                onHighlightToggle,
                                                onAddAllUntracked,
                                            }: Readonly<VocabularyStatsBarProps>) {
+    const { t } = useTranslation();
+
     if (tokens.length === 0) return null;
 
     function percentage(count: number) {
@@ -55,7 +58,10 @@ export default function VocabularyStatsBar({
                 const count = tokens.filter((token) => token.status === status).length;
                 const styles = STATUS_STYLES[status];
                 const stateClassName = highlighted ? `${styles.block} ${styles.blockHover}` : styles.tab;
-                const hint = `${highlighted ? "Hide" : "Show"} highlighting of ${STATUS_LABELS[status]} words`;
+                const statusLabel = t(STATUS_LABEL_KEYS[status]);
+                const hint = highlighted
+                    ? t("stats.hideHighlighting", { status: statusLabel })
+                    : t("stats.showHighlighting", { status: statusLabel });
 
                 return (
                     <button
@@ -66,7 +72,7 @@ export default function VocabularyStatsBar({
                         onClick={() => onHighlightToggle(status)}
                         className={`${STATUS_TILE_CLASSNAME} cursor-pointer transition ${stateClassName}`}
                     >
-                        <div className="font-medium">{STATUS_LABELS[status]}</div>
+                        <div className="font-medium">{statusLabel}</div>
                         <div className="text-sm">{percentage(count)}% ({count})</div>
                     </button>
                 );
