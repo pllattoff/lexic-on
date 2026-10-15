@@ -1,0 +1,76 @@
+{
+    "common": {
+        "dictionaries": "Wörterbücher",
+        "delete": "Löschen",
+        "removeFromVocabulary": "Aus dem Wörterbuch entfernen",
+        "cancel": "Abbrechen",
+        "loading": "Wird geladen",
+        "loginToTrack": "Melde dich an, um Wörter zu speichern"
+    },
+    "untracked": {
+        "label": "Ohne Status",
+        "addAllLabel": "Alle Wörter ohne Status zum Wörterbuch hinzufügen",
+        "addAllTitle": "Wörter ohne Status zum Wörterbuch hinzufügen",
+        "hideHighlighting": "Hervorhebung der Wörter ohne Status ausblenden",
+        "showHighlighting": "Hervorhebung der Wörter ohne Status einblenden",
+        "addPopup_one": "{{count}} eindeutiges Wort ohne Status hinzufügen",
+        "addPopup_other": "{{count}} eindeutige Wörter ohne Status hinzufügen"
+    },
+    "text": {
+        "startNew": "Neuen Text beginnen",
+        "startNewTitle": "Neuen Text beginnen?",
+        "startNewMessage": "Der aktuelle Text wird gelöscht.",
+        "clear": "Leeren",
+        "placeholder": "Füge deinen Text hier ein oder tippe ihn ein...",
+        "process": "Analysieren",
+        "edit": "Bearbeiten"
+    },
+    "dictionary": {
+        "backToDictionaries": "Zurück zu den Wörterbüchern",
+        "loadError": "Die Wörter konnten nicht geladen werden. Versuche es erneut.",
+        "empty": "Noch keine Wörter mit diesem Status."
+    },
+    "dictionaries": {
+        "empty": "Noch keine Wörterbücher. Analysiere einen Text und klicke auf Wörter, um dein erstes Wörterbuch anzulegen.",
+        "delete": "Wörterbuch löschen",
+        "deleteTitle": "Dieses Wörterbuch löschen?",
+        "deleteMessage_one": "{{count}} Wort aus {{source}} → {{target}} wird entfernt. Das kann nicht rückgängig gemacht werden.",
+        "deleteMessage_other": "Alle {{count}} Wörter aus {{source}} → {{target}} werden entfernt. Das kann nicht rückgängig gemacht werden."
+    },
+    "vocabulary": {
+        "status": {
+            "unknown": "Unbekannt",
+            "review": "Wiederholen",
+            "known": "Bekannt"
+        }
+    },
+    "errors": {
+        "saveStatus": "Der Status konnte nicht gespeichert werden. Versuche es erneut.",
+        "saveStatuses": "Die Status konnten nicht gespeichert werden. Versuche es erneut.",
+        "deleteStatus": "Der Status konnte nicht entfernt werden. Versuche es erneut.",
+        "deleteDictionary": "Das Wörterbuch konnte nicht gelöscht werden. Versuche es erneut."
+    },
+    "stats": {
+        "hideHighlighting": "Hervorhebung der Wörter mit Status „{{status}}“ ausblenden",
+        "showHighlighting": "Hervorhebung der Wörter mit Status „{{status}}“ einblenden"
+    },
+    "account": {
+        "continueWithGithub": "Weiter mit GitHub",
+        "greeting": "Hallo, {{login}}"
+    },
+    "header": {
+        "toggleMenu": "Menü umschalten"
+    },
+    "sidebar": {
+        "text": "Text",
+        "yourDictionaries": "Deine Wörterbücher",
+        "language": "Sprache"
+    },
+    "notFound": {
+        "title": "Seite nicht gefunden",
+        "backToText": "Zurück zum Text"
+    },
+    "dictionariesGate": {
+        "loginPrompt": "Melde dich an, um auf deine persönlichen Wörterbücher zuzugreifen."
+    }
+}

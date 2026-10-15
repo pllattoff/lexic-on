@@ -1,4 +1,5 @@
 import { useEffect, useState } from "react";
+import { useTranslation } from "react-i18next";
 import { logout } from "../../api/authApi.ts";
 import GithubIcon from "../icons/GithubIcon.tsx";
 import LoadingOverlay from "../ui/LoadingOverlay.tsx";
@@ -10,11 +11,12 @@ type AccountMenuProps = {
 };
 
 export default function AccountMenu({ currentUser, userLoading }: Readonly<AccountMenuProps>) {
+    const { t } = useTranslation();
     // True from the click on login/logout until the page is left or the request fails
     const [authPending, setAuthPending] = useState(false);
 
-    // Going back from the GitHub login page restores this page from the browser cache
-    // with authPending still true, so it has to be reset
+    // When the user returns from GitHub login using the browser's back-forward cache,
+    // the page is restored with authPending still true, so reset it on pageshow.
     useEffect(() => {
         function handlePageShow(event: PageTransitionEvent) {
             if (event.persisted) setAuthPending(false);
@@ -39,20 +41,20 @@ export default function AccountMenu({ currentUser, userLoading }: Readonly<Accou
 
     const overlay = <LoadingOverlay visible={userLoading || authPending} />;
 
-    // getCurrentUser() runs after the initial render.
-    // The component re-renders when userLoading changes.
     if (userLoading) return overlay;
 
     if (!currentUser) {
         return (
             <>
+                {/* Navigates to Spring Security's OAuth2 endpoint, which redirects to GitHub for authentication
+                    and then back to the frontend URL configured in SecurityConfig */}
                 <a
                     href="/oauth2/authorization/github"
                     onClick={() => setAuthPending(true)}
                     className="flex items-center gap-2 text-sm"
                 >
                     <GithubIcon />
-                    <span>Continue with GitHub</span>
+                    <span>{t("account.continueWithGithub")}</span>
                 </a>
                 {overlay}
             </>
@@ -61,7 +63,7 @@ export default function AccountMenu({ currentUser, userLoading }: Readonly<Accou
 
     return (
         <div className="flex items-center gap-4">
-            <span className="text-sm">Hello, {currentUser.login}</span>
+            <span className="text-sm">{t("account.greeting", { login: currentUser.login })}</span>
             <button onClick={handleLogout} title={currentUser.email ?? currentUser.login}>
                 {currentUser.avatarUrl && (
                     <img

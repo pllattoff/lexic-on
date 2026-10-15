@@ -1,0 +1,76 @@
+{
+    "common": {
+        "dictionaries": "Dictionaries",
+        "delete": "Delete",
+        "removeFromVocabulary": "Remove from vocabulary",
+        "cancel": "Cancel",
+        "loading": "Loading",
+        "loginToTrack": "Log in to track words"
+    },
+    "untracked": {
+        "label": "Untracked",
+        "addAllLabel": "Add all untracked words to the vocabulary",
+        "addAllTitle": "Add untracked words to the vocabulary",
+        "hideHighlighting": "Hide highlighting of untracked words",
+        "showHighlighting": "Show highlighting of untracked words",
+        "addPopup_one": "Add {{count}} unique untracked word",
+        "addPopup_other": "Add {{count}} unique untracked words"
+    },
+    "text": {
+        "startNew": "Start a new text",
+        "startNewTitle": "Start a new text?",
+        "startNewMessage": "The current text will be cleared.",
+        "clear": "Clear",
+        "placeholder": "Paste or type your text here...",
+        "process": "Process",
+        "edit": "Edit"
+    },
+    "dictionary": {
+        "backToDictionaries": "Back to dictionaries",
+        "loadError": "Couldn't load the words. Try again.",
+        "empty": "No words with this status yet."
+    },
+    "dictionaries": {
+        "empty": "No dictionaries yet. Process a text and click on words to start your first dictionary.",
+        "delete": "Delete the dictionary",
+        "deleteTitle": "Delete this dictionary?",
+        "deleteMessage_one": "{{count}} word of {{source}} → {{target}} will be removed. This can't be undone.",
+        "deleteMessage_other": "All {{count}} words of {{source}} → {{target}} will be removed. This can't be undone."
+    },
+    "vocabulary": {
+        "status": {
+            "unknown": "Unknown",
+            "review": "Review",
+            "known": "Known"
+        }
+    },
+    "errors": {
+        "saveStatus": "Couldn't save the status. Try again.",
+        "saveStatuses": "Couldn't save the statuses. Try again.",
+        "deleteStatus": "Couldn't remove the status. Try again.",
+        "deleteDictionary": "Couldn't delete the dictionary. Try again."
+    },
+    "stats": {
+        "hideHighlighting": "Hide highlighting of {{status}} words",
+        "showHighlighting": "Show highlighting of {{status}} words"
+    },
+    "account": {
+        "continueWithGithub": "Continue with GitHub",
+        "greeting": "Hello, {{login}}"
+    },
+    "header": {
+        "toggleMenu": "Toggle menu"
+    },
+    "sidebar": {
+        "text": "Text",
+        "yourDictionaries": "Your dictionaries",
+        "language": "Language"
+    },
+    "notFound": {
+        "title": "Page not found",
+        "backToText": "Back to the text"
+    },
+    "dictionariesGate": {
+        "loginPrompt": "Log in to access your personal dictionaries."
+    }
+}

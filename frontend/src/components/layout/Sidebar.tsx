@@ -1,11 +1,13 @@
+import { useTranslation } from "react-i18next";
 import { NavLink } from "react-router";
 import DictionariesIcon from "../icons/DictionariesIcon.tsx";
 import TextIcon from "../icons/TextIcon.tsx";
 import { dictionaryPath, dictionaryStatusPath } from "../../lib/dictionaryRoutes.ts";
 import { LANGUAGE_LABELS } from "../../lib/languages.ts";
-import { STATUS_LABELS, VOCABULARY_STATUSES } from "../../lib/vocabulary.ts";
+import { STATUS_LABEL_KEYS, VOCABULARY_STATUSES } from "../../lib/vocabulary.ts";
 import { STATUS_STYLES } from "../../lib/vocabularyStyles.ts";
 import type { DictionarySummary } from "../../types/dictionary.ts";
+import UiLanguageSelect from "./UiLanguageSelect.tsx";
 
 type SidebarProps = {
     isAuthenticated: boolean;
@@ -15,7 +17,7 @@ type SidebarProps = {
 };
 
 // Overlays the content on mobile
-const SIDEBAR_BASE_CLASSNAME = "fixed inset-y-0 left-0 z-30 w-56 shrink-0 overflow-y-auto border-r border-outline bg-surface p-4";
+const SIDEBAR_BASE_CLASSNAME = "fixed inset-y-0 left-0 z-30 flex w-56 flex-col shrink-0 border-r border-outline bg-surface px-4 pt-4 pb-2";
 
 // Stays sticky beside the content from md up
 const SIDEBAR_DESKTOP_CLASSNAME = "md:sticky md:top-header md:bottom-auto md:z-auto md:h-[calc(100vh-var(--spacing-header))] md:self-start md:bg-transparent";
@@ -33,27 +35,30 @@ function mainNavLinkClassName({ isActive }: { isActive: boolean }) {
 }
 
 export default function Sidebar({ isAuthenticated, dictionaries, onNavigate, onClose }: Readonly<SidebarProps>) {
+    const { t } = useTranslation();
+
     return (
         <>
             {/* Dimmed backdrop behind the sidebar on mobile; clicking it closes the sidebar */}
             <div className="fixed inset-0 z-20 bg-black/50 md:hidden" onClick={onClose} aria-hidden="true" />
 
             <aside className={`${SIDEBAR_BASE_CLASSNAME} ${SIDEBAR_DESKTOP_CLASSNAME}`}>
-                <nav className="flex flex-col gap-1 text-body">
+                {/* Only the navigation scrolls, so the language selector below stays visible */}
+                <nav className="flex min-h-0 flex-1 flex-col gap-1 overflow-y-auto text-body">
                     <NavLink to="/" end onClick={onNavigate} className={mainNavLinkClassName}>
                         <span className="text-sky-400"><TextIcon /></span>
-                        <span>Text</span>
+                        <span>{t("sidebar.text")}</span>
                     </NavLink>
 
                     <NavLink to="/dictionaries" end onClick={onNavigate} className={mainNavLinkClassName}>
                         <span className="text-violet-400"><DictionariesIcon /></span>
-                        <span>Dictionaries</span>
+                        <span>{t("common.dictionaries")}</span>
                     </NavLink>
 
                     {isAuthenticated && dictionaries && dictionaries.length > 0 && (
                         <div className="mt-4 flex flex-col gap-3 border-t border-outline pt-4">
                             <h2 className="px-3 text-xs font-medium uppercase tracking-wider text-body/60">
-                                Your dictionaries
+                                {t("sidebar.yourDictionaries")}
                             </h2>
 
                             {dictionaries.map((dictionary) => (
@@ -64,12 +69,17 @@ export default function Sidebar({ isAuthenticated, dictionaries, onNavigate, onC
                         </div>
                     )}
                 </nav>
+
+                <div className="mt-2 shrink-0 border-t border-outline pt-2">
+                    <UiLanguageSelect />
+                </div>
             </aside>
         </>
     );
 }
 
 function DictionaryLinks({ dictionary, onNavigate }: Readonly<{ dictionary: DictionarySummary; onNavigate: () => void }>) {
+    const { t } = useTranslation();
     const { sourceLanguage, targetLanguage } = dictionary;
 
     return (
@@ -96,7 +106,7 @@ function DictionaryLinks({ dictionary, onNavigate }: Readonly<{ dictionary: Dict
                             return `${NAV_LINK_CLASSNAME} py-1 text-sm ${statusStyle}`;
                         }}
                     >
-                        {STATUS_LABELS[status]}
+                        {t(STATUS_LABEL_KEYS[status])}
                     </NavLink>
                 ))}
             </div>

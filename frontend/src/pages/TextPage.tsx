@@ -1,4 +1,5 @@
 import { useLayoutEffect, useRef, useState, type MouseEvent, type SubmitEvent } from "react";
+import { useTranslation } from "react-i18next";
 import { processText } from "../api/textApi.ts";
 import { assignStatusToLemmas, deleteVocabularyStatus, saveVocabularyStatus } from "../api/vocabularyApi.ts";
 import PlusIcon from "../components/icons/PlusIcon.tsx";
@@ -11,6 +12,7 @@ import ConfirmDialog from "../components/ui/ConfirmDialog.tsx";
 import LoadingDots from "../components/ui/LoadingDots.tsx";
 import { useAsyncAction } from "../hooks/useAsyncAction.ts";
 import type { TextSession } from "../hooks/useTextSession.ts";
+import { PAGE_CONTAINER_CLASSNAME } from "../lib/pageStyles.ts";
 import { REQUEST_ERRORS } from "../lib/requestErrors.ts";
 import { getUntrackedLemmas } from "../lib/vocabulary.ts";
 import type { WordsStatusChangeHandler } from "../types/dictionary.ts";
@@ -20,7 +22,8 @@ import type { VocabularyStatus } from "../types/vocabulary.ts";
 type WordPopupState = {
     lemma: string;
     translation: string;
-    top: number;
+    wordTop: number;
+    wordBottom: number;
     left: number;
 };
 
@@ -43,6 +46,7 @@ type TextPageProps = {
 };
 
 export default function TextPage({ isAuthenticated, textSession, onWordsStatusChange }: Readonly<TextPageProps>) {
+    const { t } = useTranslation();
     const {
         inputText,
         setInputText,
@@ -114,7 +118,7 @@ export default function TextPage({ isAuthenticated, textSession, onWordsStatusCh
         return await runSaveStatuses(async () => {
             const addedLemmas = await assignStatusToLemmas(untrackedLemmas, sourceLanguage, targetLanguage, status);
             onWordsStatusChange(sourceLanguage, targetLanguage, addedLemmas, status);
-        }, REQUEST_ERRORS.saveStatuses);
+        }, t(REQUEST_ERRORS.saveStatuses));
     }
 
     function handleClearConfirm() {
@@ -132,7 +136,8 @@ export default function TextPage({ isAuthenticated, textSession, onWordsStatusCh
         setWordPopupState({
             lemma: token.lemma,
             translation: token.translation,
-            top: rect.bottom + 6,
+            wordTop: rect.top,
+            wordBottom: rect.bottom,
             left: rect.left,
         });
         clearModifyStatusError();
@@ -147,18 +152,18 @@ export default function TextPage({ isAuthenticated, textSession, onWordsStatusCh
         await runModifyStatus(async () => {
             const savedStatus = await saveVocabularyStatus(lemma, sourceLanguage, targetLanguage, status);
             onWordsStatusChange(sourceLanguage, targetLanguage, [lemma], savedStatus);
-        }, REQUEST_ERRORS.saveStatus);
+        }, t(REQUEST_ERRORS.saveStatus));
     }
 
     async function handleStatusDelete(lemma: string) {
         await runModifyStatus(async () => {
             await deleteVocabularyStatus(lemma, sourceLanguage, targetLanguage);
             onWordsStatusChange(sourceLanguage, targetLanguage, [lemma], null);
-        }, REQUEST_ERRORS.deleteStatus);
+        }, t(REQUEST_ERRORS.deleteStatus));
     }
 
     return (
-        <div className="mx-auto max-w-3xl p-4">
+        <div className={PAGE_CONTAINER_CLASSNAME}>
             <form onSubmit={handleSubmit} className="flex flex-col items-start gap-3">
                 {/* Keep the language selector centered and position the clear button on the right. */}
                 <div className="relative flex w-full justify-center">
@@ -172,7 +177,7 @@ export default function TextPage({ isAuthenticated, textSession, onWordsStatusCh
 
                     {inputText && (
                         <CircleButton
-                            label="Start a new text"
+                            label={t("text.startNew")}
                             className="absolute right-1 top-1/2 -translate-y-1/2"
                             onClick={() => setClearConfirmOpen(true)}
                         >
@@ -198,7 +203,7 @@ export default function TextPage({ isAuthenticated, textSession, onWordsStatusCh
                         ref={textareaRef}   // Assign the textarea DOM element to textareaRef.current
                         value={inputText}
                         onChange={(e) => setInputText(e.target.value)}
-                        placeholder="Paste or type your text here..."
+                        placeholder={t("text.placeholder")}
                         className={`${EDIT_FIELD_CLASSNAME} resize-none overflow-hidden placeholder:text-body/50 focus:border-outline-strong focus:outline-none`}
                     />
                 ) : (
@@ -218,7 +223,7 @@ export default function TextPage({ isAuthenticated, textSession, onWordsStatusCh
                         className={`${BUTTON_CLASSNAME} border border-known/40 bg-known/20 hover:bg-known/30 disabled:cursor-not-allowed disabled:opacity-40`}
                     >
                         <span className="relative">
-                            Process
+                            {t("text.process")}
                             {loading && <LoadingDots />}
                         </span>
                     </button>
@@ -229,16 +234,16 @@ export default function TextPage({ isAuthenticated, textSession, onWordsStatusCh
                         onClick={handleEdit}
                         className={`${BUTTON_CLASSNAME} border border-accent/40 bg-accent/20 hover:bg-accent/30`}
                     >
-                        Edit
+                        {t("text.edit")}
                     </button>
                 )}
             </form>
 
             {clearConfirmOpen && (
                 <ConfirmDialog
-                    title="Start a new text?"
-                    message="The current text will be cleared."
-                    confirmLabel="Clear"
+                    title={t("text.startNewTitle")}
+                    message={t("text.startNewMessage")}
+                    confirmLabel={t("text.clear")}
                     onConfirm={handleClearConfirm}
                     onCancel={() => setClearConfirmOpen(false)}
                 />
@@ -252,7 +257,8 @@ export default function TextPage({ isAuthenticated, textSession, onWordsStatusCh
                     isAuthenticated={isAuthenticated}
                     pending={modifyStatusPending}
                     errorMessage={modifyStatusError}
-                    top={wordPopupState.top}
+                    wordTop={wordPopupState.wordTop}
+                    wordBottom={wordPopupState.wordBottom}
                     left={wordPopupState.left}
                     onStatusChange={(status) => handleStatusChange(wordPopupState.lemma, status)}
                     onDelete={() => handleStatusDelete(wordPopupState.lemma)}

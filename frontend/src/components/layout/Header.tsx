@@ -1,3 +1,4 @@
+import { useTranslation } from "react-i18next";
 import { Link } from "react-router";
 import MenuIcon from "../icons/MenuIcon.tsx";
 import AccountMenu from "./AccountMenu.tsx";
@@ -16,13 +17,15 @@ export default function Header({
                                    sidebarOpen,
                                    onMenuToggle,
                                }: Readonly<HeaderProps>) {
+    const { t } = useTranslation();
+
     return (
         <header className="sticky top-0 z-10 flex h-header items-center justify-between bg-header px-4 shadow-md shadow-black/40">
             <div className="flex items-center gap-3">
                 <button
                     type="button"
                     onClick={onMenuToggle}
-                    aria-label="Toggle menu"
+                    aria-label={t("header.toggleMenu")}
                     aria-expanded={sidebarOpen}
                     className="rounded-md p-1 text-body hover:text-heading"
                 >

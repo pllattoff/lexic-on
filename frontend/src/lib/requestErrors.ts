@@ -1,7 +1,8 @@
-// User-facing messages shown when a request to the backend fails
+// Translation keys of the user-facing messages shown when a request to the backend fails.
+// Translate them with t() where the request is run.
 export const REQUEST_ERRORS = {
-    saveStatus: "Couldn't save the status. Try again.",
-    saveStatuses: "Couldn't save the statuses. Try again.",
-    deleteStatus: "Couldn't remove the status. Try again.",
-    deleteDictionary: "Couldn't delete the dictionary. Try again.",
+    saveStatus: "errors.saveStatus",
+    saveStatuses: "errors.saveStatuses",
+    deleteStatus: "errors.deleteStatus",
+    deleteDictionary: "errors.deleteDictionary",
 };
