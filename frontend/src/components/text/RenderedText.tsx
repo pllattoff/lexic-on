@@ -4,8 +4,8 @@ import { STATUS_STYLES, UNTRACKED_STYLES } from "../../lib/vocabularyStyles.ts";
 import type { ProcessedText, TextToken } from "../../types/text.ts";
 import type { VocabularyStatus } from "../../types/vocabulary.ts";
 
-// Determine the CSS classes of a word based on its vocabulary status and the highlights switched on in the stats bar
-function wordClassName(status: VocabularyStatus | null, hiddenHighlights: ReadonlySet<HighlightKey>): string {
+// Return the highlight styles for a word based on its status and whether that status is hidden in the stats bar
+function getWordHighlightClassName(status: VocabularyStatus | null, hiddenHighlights: ReadonlySet<HighlightKey>): string {
     if (hiddenHighlights.has(status ?? "UNTRACKED")) return UNTRACKED_STYLES.highlightOff;
     if (status === null) return UNTRACKED_STYLES.highlight;
 
@@ -36,14 +36,14 @@ export default function RenderedText({
             textParts.push(text.slice(cursor, token.start));
         }
 
-        const statusClassName = wordClassName(token.status, hiddenHighlights);
+        const wordHighlightClassName = getWordHighlightClassName(token.status, hiddenHighlights);
 
         // Add the token as a clickable span, highlighted if the word is in the user's vocabulary
         textParts.push(
             <span
                 key={`${token.start}-${token.end}`}
                 onClick={(e) => onWordClick(e, token)}
-                className={`-mx-[1px] cursor-pointer rounded-sm px-[1px] ${statusClassName}`}
+                className={`-mx-[1px] cursor-pointer rounded-sm px-[1px] ${wordHighlightClassName}`}
             >
                 {text.slice(token.start, token.end)}
             </span>,

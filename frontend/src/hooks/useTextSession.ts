@@ -33,7 +33,7 @@ export function useTextSession() {
     }
 
     // Update all occurrences of the lemmas in processedText state without processing the text again
-    function updateLemmasStatus(lemmas: readonly string[], status: VocabularyStatus | null) {
+    function updateOpenTextLemmasStatus(lemmas: readonly string[], status: VocabularyStatus | null) {
         const changedLemmas = new Set(lemmas);
 
         setProcessedText((current) => {
@@ -50,8 +50,8 @@ export function useTextSession() {
         });
     }
 
-    // Words got a new status: the open text shows it if the text is of the same language pair
-    function updateLemmasStatusOfPair(
+    // Update the word statuses in the open text if its language pair matches the changed vocabulary's language pair
+    function updateOpenTextLemmasStatusIfPairMatches(
         changedSource: SourceLanguage,
         changedTarget: TargetLanguage,
         lemmas: readonly string[],
@@ -59,12 +59,11 @@ export function useTextSession() {
     ) {
         if (sourceLanguage !== changedSource || targetLanguage !== changedTarget) return;
 
-        updateLemmasStatus(lemmas, status);
+        updateOpenTextLemmasStatus(lemmas, status);
     }
 
-    // The words of a deleted dictionary are not tracked anymore, so an open text of that language pair
-    // must not keep showing their statuses
-    function resetStatuses(deletedSource: SourceLanguage, deletedTarget: TargetLanguage) {
+    // Clear word statuses in the open text when its dictionary is deleted
+    function clearOpenTextLemmasStatuses(deletedSource: SourceLanguage, deletedTarget: TargetLanguage) {
         if (sourceLanguage !== deletedSource || targetLanguage !== deletedTarget) return;
 
         setProcessedText((current) => {
@@ -91,8 +90,8 @@ export function useTextSession() {
         setProcessedText,
         hiddenHighlights,
         toggleHighlight,
-        updateLemmasStatusOfPair,
-        resetStatuses,
+        updateOpenTextLemmasStatusIfPairMatches,
+        clearOpenTextLemmasStatuses,
         clearText,
     };
 }

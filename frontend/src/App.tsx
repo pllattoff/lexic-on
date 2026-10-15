@@ -25,13 +25,13 @@ function App() {
     // and show the new status in an open text. Used by every page that changes the statuses.
     const handleWordsStatusChange: WordsStatusChangeHandler = (sourceLanguage, targetLanguage, lemmas, status) => {
         handleVocabularyChange(sourceLanguage, targetLanguage, status === null ? "deleted" : "saved");
-        textSession.updateLemmasStatusOfPair(sourceLanguage, targetLanguage, lemmas, status);
+        textSession.updateOpenTextLemmasStatusIfPairMatches(sourceLanguage, targetLanguage, lemmas, status);
     };
 
     // After a dictionary is deleted: refresh the dictionaries and reset the word statuses of an open text of that pair
     function handleDictionaryDeleted(sourceLanguage: SourceLanguage, targetLanguage: TargetLanguage) {
         handleVocabularyChange(sourceLanguage, targetLanguage, "deleted");
-        textSession.resetStatuses(sourceLanguage, targetLanguage);
+        textSession.clearOpenTextLemmasStatuses(sourceLanguage, targetLanguage);
     }
 
     return (
