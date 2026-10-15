@@ -26,7 +26,7 @@ Local runs need a real Postgres (e.g. a free Neon project), Azure Translator and
 ## Architecture
 
 - **Backend:** Java 25, Spring Boot 4, Spring Data JPA/Hibernate, Flyway migrations, Spring Security + OAuth2, PostgreSQL (hosted on Neon), LanguageTool (embedded, tokenization/lemmatization), Azure Translator (translations).
-- **Frontend:** React + TypeScript + Vite + Tailwind CSS, built to static files.
+- **Frontend:** React + TypeScript + Vite + Tailwind CSS, built to static files. Interface translations (en/de/uk) use react-i18next; the texts live in `frontend/src/locales/*.json`, and a new text needs a key in all three files. The interface language is separate from the source/target languages of the text.
 - **Integration:** in production, the frontend build output is copied into `backend/src/main/resources/static` and served by the same Spring Boot app as one deployable unit (`docs/local/decisions.md` section 29) — this is also how `.github/workflows/deploy.yml` wires the two builds together before packaging and pushing to Render.
 ## Testing
 
