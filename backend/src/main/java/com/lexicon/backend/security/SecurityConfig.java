@@ -34,7 +34,7 @@ public class SecurityConfig {
                         .csrfTokenRequestHandler(new SpaCsrfTokenRequestHandler())
                 )
                 .authorizeHttpRequests(auth -> auth
-                        .requestMatchers("/", "/index.html", "/assets/**", "/favicon.svg").permitAll()
+                        .requestMatchers("/", "/index.html", "/assets/**", "/favicon.svg", "/privacy.html").permitAll()
                         // Permit direct access to dictionary SPA routes that are forwarded to /index.html by SpaForwardController:
                         .requestMatchers("/dictionaries", "/dictionaries/**").permitAll()
                         .requestMatchers("/oauth2/**", "/login/**", "/logout").permitAll()

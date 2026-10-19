@@ -5,7 +5,8 @@
         "removeFromVocabulary": "Aus dem Wörterbuch entfernen",
         "cancel": "Abbrechen",
         "loading": "Wird geladen",
-        "loginToTrack": "Melde dich an, um Wörter zu speichern"
+        "loginToTrack": "Melde dich an, um Wörter zu speichern",
+        "privacyPolicy": "Datenschutzerklärung"
     },
     "untracked": {
         "label": "Ohne Status",
