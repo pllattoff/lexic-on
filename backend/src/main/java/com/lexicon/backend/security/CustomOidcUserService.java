@@ -27,7 +27,8 @@ public class CustomOidcUserService extends OidcUserService {
     AppOidcUser toAppOidcUser(OidcUserRequest userRequest, OidcUser googleUser) {
         String provider = userRequest.getClientRegistration().getRegistrationId();
 
-        AppUser appUser = appUserResolver.resolve(provider, googleUser.getSubject(), () -> findVerifiedEmail(googleUser));
+        AppUser appUser = appUserResolver.resolve(provider, googleUser.getSubject(),
+                () -> findVerifiedEmail(googleUser));
 
         return new AppOidcUser(appUser.getId(), appUser.getEmail(), appUser.getRole(), googleUser);
     }

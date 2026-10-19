@@ -42,7 +42,8 @@ public class AppOidcUser extends DefaultOidcUser implements AppPrincipal {
         if (getFullName() != null) {
             return getFullName();
         }
-        return email.substring(0, email.indexOf('@'));
+        // The part before "@" (the whole email if it has none)
+        return email.split("@", 2)[0];
     }
 
     @Override
