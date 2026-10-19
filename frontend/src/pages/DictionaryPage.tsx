@@ -135,14 +135,16 @@ function DictionaryContent({ sourceLanguage, targetLanguage, status, onWordsStat
                         </div>
 
                         <div className="flex shrink-0 items-center justify-end gap-3">
-                            {VOCABULARY_STATUSES.filter((otherStatus) => otherStatus !== status).map((otherStatus) => (
-                                <StatusButton
-                                    key={otherStatus}
-                                    status={otherStatus}
-                                    disabled={pending}
-                                    onClick={() => handleStatusChange(word.lemma, otherStatus)}
-                                />
-                            ))}
+                            <div className="flex items-center gap-1">
+                                {VOCABULARY_STATUSES.filter((otherStatus) => otherStatus !== status).map((otherStatus) => (
+                                    <StatusButton
+                                        key={otherStatus}
+                                        status={otherStatus}
+                                        disabled={pending}
+                                        onClick={() => handleStatusChange(word.lemma, otherStatus)}
+                                    />
+                                ))}
+                            </div>
 
                             <button
                                 type="button"

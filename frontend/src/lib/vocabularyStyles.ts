@@ -25,7 +25,7 @@ type StatusStyle = {
 // Words without a status are not a vocabulary status, so their styles are kept next to STATUS_STYLES
 export const UNTRACKED_STYLES = {
     // Words in the text: highlighted, a bit dimmer than the hover color of the plain ones, and lighter on hover
-    highlight: "bg-outline/40 hover:bg-outline/60 hover:text-body",
+    highlight: "bg-outline/50 hover:bg-outline/70 hover:text-body",
     // Words in the text with the highlight switched off: only the hover color, a bit lighter than the tile
     highlightOff: "hover:bg-outline/50 hover:text-body",
     // The stats bar tile. Its border color is inherited by the divider between the two parts of the tile,
@@ -41,7 +41,7 @@ export const STATUS_STYLES: Record<VocabularyStatus, StatusStyle> = {
     UNKNOWN: {
         highlight: "bg-unknown/20",
         highlightHover: "hover:bg-unknown/15 hover:text-unknown/80",
-        block: "border-unknown/40 bg-unknown/15 text-unknown",
+        block: "border-unknown/60 bg-unknown/20 text-unknown",
         blockHover: "hover:border-unknown hover:bg-unknown/25 hover:shadow-md hover:shadow-unknown/20",
         segment: "text-unknown/60 hover:text-unknown",
         segmentSelected: "text-unknown scale-105",
@@ -53,7 +53,7 @@ export const STATUS_STYLES: Record<VocabularyStatus, StatusStyle> = {
     REVIEW: {
         highlight: "bg-review/20",
         highlightHover: "hover:bg-review/15 hover:text-review/80",
-        block: "border-review/40 bg-review/15 text-review",
+        block: "border-review/60 bg-review/20 text-review",
         blockHover: "hover:border-review hover:bg-review/25 hover:shadow-md hover:shadow-review/20",
         segment: "text-review/60 hover:text-review",
         segmentSelected: "text-review scale-105",
@@ -65,7 +65,7 @@ export const STATUS_STYLES: Record<VocabularyStatus, StatusStyle> = {
     KNOWN: {
         highlight: "bg-known/20",
         highlightHover: "hover:bg-known/15 hover:text-known/80",
-        block: "border-known/40 bg-known/15 text-known",
+        block: "border-known/60 bg-known/20 text-known",
         blockHover: "hover:border-known hover:bg-known/25 hover:shadow-md hover:shadow-known/20",
         segment: "text-known/60 hover:text-known",
         segmentSelected: "text-known scale-105",
