@@ -1,9 +1,9 @@
-export default function ChevronDownIcon() {
+export default function ChevronDownIcon({ size = 16 }: Readonly<{ size?: number }>) {
     return (
         <svg
             viewBox="0 0 24 24"
-            width={16}
-            height={16}
+            width={size}
+            height={size}
             fill="none"
             stroke="currentColor"
             strokeWidth={2}

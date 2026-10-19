@@ -2,6 +2,7 @@ import { useTranslation } from "react-i18next";
 import { LANGUAGE_LABELS } from "../../lib/languages.ts";
 import { isUiLanguage, saveUiLanguage, UI_LANGUAGE_SHORT_LABELS, UI_LANGUAGES } from "../../lib/uiLanguages.ts";
 import GlobeIcon from "../icons/GlobeIcon.tsx";
+import SelectCaret from "../ui/SelectCaret.tsx";
 
 // Switches the interface language; the choice is remembered between visits
 export default function UiLanguageSelect() {
@@ -18,14 +19,15 @@ export default function UiLanguageSelect() {
 
     return (
         <label
-            className="relative flex w-fit items-center gap-2 rounded-md px-3 py-1.5 text-xs text-body hover:text-heading has-[:focus-visible]:ring-2 has-[:focus-visible]:ring-accent">
+            className="group relative flex w-fit items-center gap-2 rounded-md px-3 py-1.5 text-xs text-body hover:text-heading has-[:focus-visible]:ring-2 has-[:focus-visible]:ring-accent">
             <GlobeIcon />
             <span>{t("sidebar.language")}:</span>
 
             {/* The visible value shows the short code of the current language */}
             <span className="flex items-center gap-1">
                 {currentShortLabel}
-                <span aria-hidden="true">▾</span>
+                {/* The text sits a bit lower than the middle of its line, so the caret is moved down to match */}
+                <SelectCaret size={12} className="translate-y-px" />
             </span>
 
             {/* The real select is transparent and covers the whole control: it receives the clicks

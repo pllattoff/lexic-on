@@ -164,9 +164,11 @@ export default function TextPage({ isAuthenticated, textSession, onWordsStatusCh
 
     return (
         <div className={PAGE_CONTAINER_CLASSNAME}>
-            <form onSubmit={handleSubmit} className="flex flex-col items-start gap-3">
-                {/* Keep the language selector centered and position the clear button on the right. */}
-                <div className="relative flex w-full justify-center">
+            <form onSubmit={handleSubmit} className="@container flex flex-col items-start gap-3">
+                {/* Keep the language selector centered and position the clear button on the right.
+                    When the form is too narrow for both in one row (the selectors take about 320px and
+                    the button needs room on each side to keep them centered), the button moves to its own centered row above. */}
+                <div className="flex w-full flex-col items-center gap-2 @min-[420px]:relative @min-[420px]:flex-row @min-[420px]:justify-center">
                     <LanguageSelector
                         isEditing={isEditing}
                         sourceLanguage={sourceLanguage}
@@ -178,7 +180,7 @@ export default function TextPage({ isAuthenticated, textSession, onWordsStatusCh
                     {inputText && (
                         <CircleButton
                             label={t("text.startNew")}
-                            className="absolute right-1 top-1/2 -translate-y-1/2"
+                            className="order-first @min-[420px]:absolute @min-[420px]:right-1 @min-[420px]:top-1/2 @min-[420px]:order-none @min-[420px]:-translate-y-1/2"
                             onClick={() => setClearConfirmOpen(true)}
                         >
                             <PlusIcon />

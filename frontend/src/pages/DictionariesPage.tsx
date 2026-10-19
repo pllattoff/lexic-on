@@ -74,7 +74,7 @@ export default function DictionariesPage({ dictionaries, onDictionaryDeleted }: 
                                 </CircleButton>
                             </div>
 
-                            <div className="grid grid-cols-1 gap-2 min-[400px]:grid-cols-3">
+                            <div className="grid grid-cols-1 gap-2 min-[480px]:grid-cols-3">
                                 {VOCABULARY_STATUSES.map((status) => (
                                     <Link
                                         key={status}
