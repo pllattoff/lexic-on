@@ -107,13 +107,14 @@ function DictionaryContent({ sourceLanguage, targetLanguage, status, onWordsStat
                 </h1>
             </div>
 
-            <nav className="mb-4 grid grid-cols-3 gap-2">
+            {/* minmax(auto, 1fr): equal columns, but a column never gets narrower than its longest label */}
+            <nav className="mb-4 grid grid-cols-[repeat(3,minmax(auto,1fr))] gap-2 max-[399px]:gap-1">
                 {VOCABULARY_STATUSES.map((tabStatus) => (
                     <NavLink
                         key={tabStatus}
                         to={dictionaryStatusPath(sourceLanguage, targetLanguage, tabStatus)}
                         className={({ isActive }) =>
-                            `${STATUS_TILE_CLASSNAME} ${isActive ? STATUS_STYLES[tabStatus].tabSelected : STATUS_STYLES[tabStatus].tab}`
+                            `${STATUS_TILE_CLASSNAME} max-[399px]:px-1 max-[339px]:text-sm ${isActive ? STATUS_STYLES[tabStatus].tabSelected : STATUS_STYLES[tabStatus].tab}`
                         }
                     >
                         {t(STATUS_LABEL_KEYS[tabStatus])}
@@ -133,7 +134,7 @@ function DictionaryContent({ sourceLanguage, targetLanguage, status, onWordsStat
                             <span className="font-medium text-heading">{word.lemma}</span> – {word.translation}
                         </div>
 
-                        <div className="flex shrink-0 items-center gap-3">
+                        <div className="flex shrink-0 items-center justify-end gap-3">
                             {VOCABULARY_STATUSES.filter((otherStatus) => otherStatus !== status).map((otherStatus) => (
                                 <StatusButton
                                     key={otherStatus}
