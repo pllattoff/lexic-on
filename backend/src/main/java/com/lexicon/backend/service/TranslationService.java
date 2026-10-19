@@ -75,18 +75,12 @@ public class TranslationService {
         }
 
         List<Translation> translations =
-                translationRepository.findByWordEntryInAndTargetLanguage(wordEntries, targetLanguage);
+                translationRepository.findByWordEntryInAndTargetLanguageOrderById(wordEntries, targetLanguage);
 
-        Map<String, String> translationsByLemma = new HashMap<>();
-
-        for (Translation translation : translations) {
-            translationsByLemma.put(
-                    translation.getWordEntry().getLemma(),
-                    translation.getTranslation()
-            );
-        }
-
-        return translationsByLemma;
+        return translations.stream()
+                .collect(Collectors.groupingBy(
+                        translation -> translation.getWordEntry().getLemma(),
+                        Collectors.mapping(Translation::getTranslation, Collectors.joining(", "))));
     }
 
     private Map<String, String> fetchAndSaveMissingTranslations(List<String> lemmasWithoutTranslations, SourceLanguage sourceLanguage, TargetLanguage targetLanguage) {

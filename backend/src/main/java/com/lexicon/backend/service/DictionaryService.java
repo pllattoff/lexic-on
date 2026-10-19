@@ -72,7 +72,7 @@ public class DictionaryService {
 
         // Groups translations by word entry and combines them into a single string.
         Map<Long, String> translationsByWordEntryId = translationRepository
-                .findByWordEntryInAndTargetLanguage(wordEntries, targetLanguage).stream()
+                .findByWordEntryInAndTargetLanguageOrderById(wordEntries, targetLanguage).stream()
                 .collect(Collectors.groupingBy(
                         // Hibernate can retrieve the ID from a LAZY proxy without loading the associated entity
                         translation -> translation.getWordEntry().getId(),

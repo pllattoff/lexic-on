@@ -66,6 +66,27 @@ class TranslationServiceTest {
     }
 
     @Test
+    void attachTranslations_joinsTranslationsWithComma_whenLemmaHasMultipleStoredTranslations() {
+        // GIVEN the lemma "the" has three stored translations
+        ProcessedText processedText = new ProcessedText("the", List.of(new TextToken(0, 3, "the", null, null)));
+        WordEntry wordEntry = new WordEntry(SourceLanguage.EN, "the");
+        when(wordEntryRepository.findByLemmaInAndLanguage(any(), any())).thenReturn(List.of(wordEntry));
+        when(translationRepository.findByWordEntryInAndTargetLanguageOrderById(any(), any())).thenReturn(List.of(
+                new Translation(wordEntry, TargetLanguage.DE, "der"),
+                new Translation(wordEntry, TargetLanguage.DE, "die"),
+                new Translation(wordEntry, TargetLanguage.DE, "das")));
+
+        // WHEN
+        ProcessedText result = translationService.attachTranslations(processedText, SourceLanguage.EN, TargetLanguage.DE);
+
+        // THEN all translations are attached as one comma-separated string
+        assertThat(result.tokens())
+                .extracting(TextToken::translation)
+                .containsExactly("der, die, das");
+        verifyNoInteractions(azureTranslatorClient, translationPersistenceService);
+    }
+
+    @Test
     void attachTranslations_translatesOnlyMissingLemmas_whenSomeTranslationsExist() {
         // GIVEN "hello" is stored, "world" is not
         ProcessedText processedText = new ProcessedText("Hello world", List.of(
@@ -213,7 +234,7 @@ class TranslationServiceTest {
         when(wordEntryRepository.findByLemmaInAndLanguage(any(), any())).thenReturn(wordEntries);
         // The service does not query translations when there are no word entries
         if (!wordEntries.isEmpty()) {
-            when(translationRepository.findByWordEntryInAndTargetLanguage(any(), any())).thenReturn(translations);
+            when(translationRepository.findByWordEntryInAndTargetLanguageOrderById(any(), any())).thenReturn(translations);
         }
     }
 }

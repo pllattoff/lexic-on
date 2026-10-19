@@ -98,7 +98,7 @@ class DictionaryServiceTest {
         // GIVEN a word with two German translations
         WordEntry bank = givenWordEntry(10L, "bank");
         givenDictionaryWords(bank);
-        when(translationRepository.findByWordEntryInAndTargetLanguage(anyCollection(), eq(TargetLanguage.DE)))
+        when(translationRepository.findByWordEntryInAndTargetLanguageOrderById(anyCollection(), eq(TargetLanguage.DE)))
                 .thenReturn(List.of(
                         new Translation(bank, TargetLanguage.DE, "Bank"),
                         new Translation(bank, TargetLanguage.DE, "Ufer")));
@@ -131,7 +131,7 @@ class DictionaryServiceTest {
         WordEntry world = givenWordEntry(12L, "world");
         WordEntry hello = givenWordEntry(13L, "hello");
         givenDictionaryWords(world, hello);
-        when(translationRepository.findByWordEntryInAndTargetLanguage(anyCollection(), eq(TargetLanguage.DE)))
+        when(translationRepository.findByWordEntryInAndTargetLanguageOrderById(anyCollection(), eq(TargetLanguage.DE)))
                 .thenReturn(List.of(
                         new Translation(hello, TargetLanguage.DE, "hallo"),
                         new Translation(world, TargetLanguage.DE, "Welt")));
