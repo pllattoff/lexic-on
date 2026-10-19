@@ -75,7 +75,8 @@ export default function WordPopup({
             <div className="px-5 py-4">
                 <div className="px-6 font-medium">{lemma}</div>
                 <div className="text-body/40">–</div>
-                <div className="text-body">{translation}</div>
+                {/* Several translations wrap onto new lines instead of widening the popup */}
+                <div className="mx-auto max-w-64 text-body">{translation}</div>
 
                 <div className="mt-3 flex flex-wrap items-center justify-center gap-x-3 gap-y-1 border-t border-outline pt-3">
                     {VOCABULARY_STATUSES.map((buttonStatus) => (

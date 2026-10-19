@@ -18,9 +18,9 @@
   --color-panel: color-mix(in oklab, var(--color-surface) 90%, transparent);
   /* Opaque (the page scrolls under the sticky header): the accent tinted at 5% over the base color */
   --color-header: color-mix(in oklab, var(--color-accent) 5%, var(--color-base));
-  --color-known: #3ecf7e;
-  --color-review: #e8d347;
-  --color-unknown: #e5677a;
+  --color-known: #3ee08a;
+  --color-review: #dbc03c;
+  --color-unknown: #ff7a8c;
   --color-error: #f0955a;
 
   /* Height of the sticky header; the sticky sidebar starts right below it (h-header, top-header) */
