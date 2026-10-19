@@ -102,3 +102,7 @@ lexic-on/
 ├── Dockerfile               production image (runs the built backend jar)
 └── sonar-project.properties SonarCloud settings
 ```
+
+## Privacy
+
+[Privacy policy](https://lexic-on.onrender.com/privacy.html)

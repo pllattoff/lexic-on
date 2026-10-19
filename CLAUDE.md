@@ -28,6 +28,11 @@ Local runs need a real Postgres (e.g. a free Neon project), Azure Translator and
 - **Backend:** Java 25, Spring Boot 4, Spring Data JPA/Hibernate, Flyway migrations, Spring Security + OAuth2, PostgreSQL (hosted on Neon), LanguageTool (embedded, tokenization/lemmatization), Azure Translator (translations).
 - **Frontend:** React + TypeScript + Vite + Tailwind CSS, built to static files. Interface translations (en/de/uk) use react-i18next; the texts live in `frontend/src/locales/*.json`, and a new text needs a key in all three files. The interface language is separate from the source/target languages of the text.
 - **Integration:** in production, the frontend build output is copied into `backend/src/main/resources/static` and served by the same Spring Boot app as one deployable unit (`docs/local/decisions.md` section 29) — this is also how `.github/workflows/deploy.yml` wires the two builds together before packaging and pushing to Render.
+
+## Privacy policy
+
+The public privacy policy is `frontend/public/privacy.html` (served at `/privacy.html`, permitted without login in `SecurityConfig`; its URL is entered in the Google OAuth consent screen). It describes what data is stored, which third-party services process it and which browser storage is used. Update the page and its "Last updated" date whenever a change affects that: a new sign-in provider, new personal data in the database, a new third-party service (translator, analytics, error tracking), a new cookie or browser storage use, or a hosting/database change.
+
 ## Testing
 
 Full rules: `docs/local/decisions.md` section 27. In short:
