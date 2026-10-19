@@ -90,7 +90,7 @@ class TranslationPersistenceServiceTest {
     void saveTranslations_doesNotCreateDuplicateTranslation_whenTranslationAlreadyExists() {
         // GIVEN a word entry that already has a translation
         WordEntry existing = givenStoredWordEntry(1L, "hello");
-        when(translationRepository.findByWordEntryInAndTargetLanguage(anyCollection(), eq(TargetLanguage.DE)))
+        when(translationRepository.findByWordEntryInAndTargetLanguageOrderById(anyCollection(), eq(TargetLanguage.DE)))
                 .thenReturn(List.of(new Translation(existing, TargetLanguage.DE, "hallo")));
 
         // WHEN saving a translation for the same lemma and target language again

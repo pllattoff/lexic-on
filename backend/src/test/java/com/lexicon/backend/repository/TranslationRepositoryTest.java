@@ -29,7 +29,7 @@ class TranslationRepositoryTest {
     private TranslationRepository translationRepository;
 
     @Test
-    void findByWordEntryInAndTargetLanguage_returnsOnlyMatchingTranslations_whenOthersExist() {
+    void findByWordEntryInAndTargetLanguageOrderById_returnsOnlyMatchingTranslations_whenOthersExist() {
         // GIVEN
         WordEntry hello = wordEntryRepository.save(new WordEntry(SourceLanguage.EN, "hello"));
         WordEntry world = wordEntryRepository.save(new WordEntry(SourceLanguage.EN, "world"));
@@ -39,10 +39,26 @@ class TranslationRepositoryTest {
 
         // WHEN
         List<Translation> translations = translationRepository
-                .findByWordEntryInAndTargetLanguage(List.of(hello), TargetLanguage.DE);
+                .findByWordEntryInAndTargetLanguageOrderById(List.of(hello), TargetLanguage.DE);
 
         // THEN
         assertThat(translations).extracting(Translation::getTranslation).containsExactly("hallo");
+    }
+
+    @Test
+    void findByWordEntryInAndTargetLanguageOrderById_returnsTranslationsInInsertionOrder_whenWordEntryHasSeveral() {
+        // GIVEN translations saved in an order that differs from alphabetical order
+        WordEntry the = wordEntryRepository.save(new WordEntry(SourceLanguage.EN, "the"));
+        translationRepository.save(new Translation(the, TargetLanguage.DE, "der"));
+        translationRepository.save(new Translation(the, TargetLanguage.DE, "die"));
+        translationRepository.save(new Translation(the, TargetLanguage.DE, "das"));
+
+        // WHEN
+        List<Translation> translations = translationRepository
+                .findByWordEntryInAndTargetLanguageOrderById(List.of(the), TargetLanguage.DE);
+
+        // THEN they come back ordered by id
+        assertThat(translations).extracting(Translation::getTranslation).containsExactly("der", "die", "das");
     }
 
     @Test
@@ -55,7 +71,7 @@ class TranslationRepositoryTest {
         translationRepository.saveAndFlush(new Translation(bank, TargetLanguage.DE, "Ufer"));
 
         // THEN both translations are stored
-        assertThat(translationRepository.findByWordEntryInAndTargetLanguage(List.of(bank), TargetLanguage.DE))
+        assertThat(translationRepository.findByWordEntryInAndTargetLanguageOrderById(List.of(bank), TargetLanguage.DE))
                 .extracting(Translation::getTranslation).containsExactlyInAnyOrder("Bank", "Ufer");
     }
 

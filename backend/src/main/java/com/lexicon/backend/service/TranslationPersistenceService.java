@@ -51,7 +51,7 @@ public class TranslationPersistenceService {
 
         // Load existing translations for deduplication
         List<Translation> existingTranslations = translationRepository
-                .findByWordEntryInAndTargetLanguage(wordEntriesByLemma.values(), targetLanguage);
+                .findByWordEntryInAndTargetLanguageOrderById(wordEntriesByLemma.values(), targetLanguage);
 
         Set<Long> translatedWordEntryIds = existingTranslations.stream()
                 .map(translation -> translation.getWordEntry().getId())

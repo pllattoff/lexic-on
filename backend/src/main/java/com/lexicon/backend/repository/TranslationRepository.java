@@ -9,5 +9,5 @@ import java.util.Collection;
 import java.util.List;
 
 public interface TranslationRepository extends JpaRepository<Translation, Long> {
-    List<Translation> findByWordEntryInAndTargetLanguage(Collection<WordEntry> wordEntries, TargetLanguage targetLanguage);
+    List<Translation> findByWordEntryInAndTargetLanguageOrderById(Collection<WordEntry> wordEntries, TargetLanguage targetLanguage);
 }
