@@ -53,15 +53,21 @@
         "saveStatus": "Не вдалося зберегти статус. Спробуйте ще раз.",
         "saveStatuses": "Не вдалося зберегти статуси. Спробуйте ще раз.",
         "deleteStatus": "Не вдалося видалити статус. Спробуйте ще раз.",
-        "deleteDictionary": "Не вдалося видалити словник. Спробуйте ще раз."
+        "deleteDictionary": "Не вдалося видалити словник. Спробуйте ще раз.",
+        "logout": "Не вдалося вийти. Спробуйте ще раз."
     },
     "stats": {
         "hideHighlighting": "Сховати підсвічування слів зі статусом «{{status}}»",
         "showHighlighting": "Показати підсвічування слів зі статусом «{{status}}»"
     },
     "account": {
+        "logIn": "Увійти",
         "continueWithGithub": "Продовжити через GitHub",
-        "greeting": "Привіт, {{login}}"
+        "continueWithGoogle": "Продовжити через Google",
+        "logOut": "Вийти",
+        "logOutTitle": "Вийти?",
+        "logOutMessage": "Ви вийдете з lexic.on.",
+        "greeting": "Привіт, {{name}}"
     },
     "header": {
         "toggleMenu": "Перемкнути меню"

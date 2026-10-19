@@ -49,15 +49,21 @@
         "saveStatus": "Der Status konnte nicht gespeichert werden. Versuche es erneut.",
         "saveStatuses": "Die Status konnten nicht gespeichert werden. Versuche es erneut.",
         "deleteStatus": "Der Status konnte nicht entfernt werden. Versuche es erneut.",
-        "deleteDictionary": "Das Wörterbuch konnte nicht gelöscht werden. Versuche es erneut."
+        "deleteDictionary": "Das Wörterbuch konnte nicht gelöscht werden. Versuche es erneut.",
+        "logout": "Die Abmeldung ist fehlgeschlagen. Versuche es erneut."
     },
     "stats": {
         "hideHighlighting": "Hervorhebung der Wörter mit Status „{{status}}“ ausblenden",
         "showHighlighting": "Hervorhebung der Wörter mit Status „{{status}}“ einblenden"
     },
     "account": {
+        "logIn": "Anmelden",
         "continueWithGithub": "Weiter mit GitHub",
-        "greeting": "Hallo, {{login}}"
+        "continueWithGoogle": "Weiter mit Google",
+        "logOut": "Abmelden",
+        "logOutTitle": "Abmelden?",
+        "logOutMessage": "Du wirst von lexic.on abgemeldet.",
+        "greeting": "Hallo, {{name}}"
     },
     "header": {
         "toggleMenu": "Menü umschalten"
