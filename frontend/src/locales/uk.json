@@ -5,7 +5,8 @@
         "removeFromVocabulary": "Видалити зі словника",
         "cancel": "Скасувати",
         "loading": "Завантаження",
-        "loginToTrack": "Увійдіть, щоб зберігати слова"
+        "loginToTrack": "Увійдіть, щоб зберігати слова",
+        "privacyPolicy": "Політика конфіденційності"
     },
     "untracked": {
         "label": "Без статусу",

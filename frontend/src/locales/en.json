@@ -5,7 +5,8 @@
         "removeFromVocabulary": "Remove from vocabulary",
         "cancel": "Cancel",
         "loading": "Loading",
-        "loginToTrack": "Log in to track words"
+        "loginToTrack": "Log in to track words",
+        "privacyPolicy": "Privacy policy"
     },
     "untracked": {
         "label": "Untracked",
