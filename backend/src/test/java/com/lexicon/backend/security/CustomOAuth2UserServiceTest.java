@@ -2,7 +2,6 @@ package com.lexicon.backend.security;
 
 import com.lexicon.backend.client.GithubApiClient;
 import com.lexicon.backend.model.AppUser;
-import com.lexicon.backend.service.AppUserService;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.InjectMocks;
@@ -12,7 +11,6 @@ import org.springframework.security.oauth2.client.registration.ClientRegistratio
 import org.springframework.security.oauth2.client.userinfo.OAuth2UserRequest;
 import org.springframework.security.oauth2.core.AuthorizationGrantType;
 import org.springframework.security.oauth2.core.OAuth2AccessToken;
-import org.springframework.security.oauth2.core.OAuth2AuthenticationException;
 import org.springframework.security.oauth2.core.user.DefaultOAuth2User;
 import org.springframework.security.oauth2.core.user.OAuth2User;
 
@@ -24,7 +22,6 @@ import java.util.Optional;
 import java.util.function.Supplier;
 
 import static org.assertj.core.api.Assertions.assertThat;
-import static org.assertj.core.api.Assertions.assertThatThrownBy;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.verifyNoInteractions;
@@ -34,7 +31,7 @@ import static org.mockito.Mockito.when;
 class CustomOAuth2UserServiceTest {
 
     @Mock
-    private AppUserService appUserService;
+    private AppUserResolver appUserResolver;
 
     @Mock
     private GithubApiClient githubApiClient;
@@ -43,50 +40,36 @@ class CustomOAuth2UserServiceTest {
     private CustomOAuth2UserService customOAuth2UserService;
 
     @Test
-    void toAppOAuth2User_usesEmailFromProfile_whenProfileHasEmail() {
-        // GIVEN a GitHub profile with a public email
-        givenAppUserServiceCreatesUserWithResolvedEmail();
+    void toAppOAuth2User_usesVerifiedEmailFromGithubEmails_whenIdentityIsNew() {
+        // GIVEN a new identity, and a GitHub profile whose email says nothing about being verified
+        givenResolverCreatesUserWithSuppliedEmail();
+        when(githubApiClient.findPrimaryVerifiedEmail("token-value")).thenReturn(Optional.of("verified@example.com"));
+
+        // WHEN
+        AppOAuth2User user = customOAuth2UserService.toAppOAuth2User(userRequest(), githubUser("profile@example.com"));
+
+        // THEN the primary verified email from the emails endpoint is used, not the profile email
+        assertThat(user.getEmail()).isEqualTo("verified@example.com");
+    }
+
+    @Test
+    void toAppOAuth2User_doesNotCallGithubEmails_whenIdentityIsKnown() {
+        // GIVEN the resolver finds the user without asking for the email
+        when(appUserResolver.resolve(eq("github"), eq("42"), any())).thenReturn(new AppUser("test@example.com"));
 
         // WHEN
         AppOAuth2User user = customOAuth2UserService.toAppOAuth2User(userRequest(), githubUser("test@example.com"));
 
-        // THEN the profile email is used and the GitHub emails endpoint is not called
+        // THEN the GitHub emails endpoint is not called
         assertThat(user.getEmail()).isEqualTo("test@example.com");
         verifyNoInteractions(githubApiClient);
     }
 
     @Test
-    void toAppOAuth2User_fallsBackToGithubEmails_whenProfileEmailIsPrivate() {
-        // GIVEN a GitHub profile with a private email (null attribute)
-        givenAppUserServiceCreatesUserWithResolvedEmail();
-        when(githubApiClient.findPrimaryVerifiedEmail("token-value")).thenReturn(Optional.of("private@example.com"));
-
-        // WHEN
-        AppOAuth2User user = customOAuth2UserService.toAppOAuth2User(userRequest(), githubUser(null));
-
-        // THEN the primary verified email from the emails endpoint is used
-        assertThat(user.getEmail()).isEqualTo("private@example.com");
-    }
-
-    @Test
-    void toAppOAuth2User_throwsOAuth2AuthenticationException_whenAccountHasNoVerifiedEmail() {
-        // GIVEN a private profile email and no verified email on the account
-        givenAppUserServiceCreatesUserWithResolvedEmail();
-        when(githubApiClient.findPrimaryVerifiedEmail("token-value")).thenReturn(Optional.empty());
-        OAuth2UserRequest userRequest = userRequest();
-        OAuth2User githubUser = githubUser(null);
-
-        // WHEN
-        assertThatThrownBy(() -> customOAuth2UserService.toAppOAuth2User(userRequest, githubUser))
-        // THEN the login is rejected
-                .isInstanceOf(OAuth2AuthenticationException.class)
-                .hasMessage("GitHub account has no verified email");
-    }
-
-    @Test
     void toAppOAuth2User_keepsGithubAttributesAndGrantsRoleUser_whenUserIsResolved() {
         // GIVEN
-        givenAppUserServiceCreatesUserWithResolvedEmail();
+        givenResolverCreatesUserWithSuppliedEmail();
+        when(githubApiClient.findPrimaryVerifiedEmail("token-value")).thenReturn(Optional.of("test@example.com"));
 
         // WHEN
         AppOAuth2User user = customOAuth2UserService.toAppOAuth2User(userRequest(), githubUser("test@example.com"));
@@ -96,11 +79,11 @@ class CustomOAuth2UserServiceTest {
         assertThat(user.getAuthorities()).extracting("authority").containsExactly("ROLE_USER");
     }
 
-    // The real AppUserService resolves the email only for a new user; the stub mimics a new user
-    private void givenAppUserServiceCreatesUserWithResolvedEmail() {
-        when(appUserService.findOrCreate(eq("github"), eq("42"), any())).thenAnswer(invocation -> {
-            Supplier<String> emailSupplier = invocation.getArgument(2);
-            return new AppUser(emailSupplier.get());
+    // The real resolver asks for the email only for a new identity; the stub mimics a new identity
+    private void givenResolverCreatesUserWithSuppliedEmail() {
+        when(appUserResolver.resolve(eq("github"), eq("42"), any())).thenAnswer(invocation -> {
+            Supplier<Optional<String>> verifiedEmailSupplier = invocation.getArgument(2);
+            return new AppUser(verifiedEmailSupplier.get().orElseThrow());
         });
     }
 

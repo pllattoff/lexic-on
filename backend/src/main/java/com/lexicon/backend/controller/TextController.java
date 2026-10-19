@@ -2,7 +2,7 @@ package com.lexicon.backend.controller;
 
 import com.lexicon.backend.dto.ProcessTextRequest;
 import com.lexicon.backend.dto.ProcessedText;
-import com.lexicon.backend.security.AppOAuth2User;
+import com.lexicon.backend.security.AppPrincipal;
 import com.lexicon.backend.service.TextProcessingService;
 import com.lexicon.backend.service.TranslationService;
 import com.lexicon.backend.service.VocabularyService;
@@ -22,7 +22,7 @@ public class TextController {
 
     // For unauthenticated requests, Spring Security provides no user; vocabulary statuses are only added for logged-in users
     @PostMapping("/process")
-    public ProcessedText process(@AuthenticationPrincipal AppOAuth2User user,
+    public ProcessedText process(@AuthenticationPrincipal AppPrincipal user,
                                  @Valid @RequestBody ProcessTextRequest request) {
         ProcessedText processedText = textProcessingService.process(request.text());
         ProcessedText translatedText = translationService.attachTranslations(processedText, request.sourceLanguage(), request.targetLanguage());

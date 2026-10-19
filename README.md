@@ -11,7 +11,7 @@ This is a capstone project and is under active development.
 ## Features
 
 - **Reading without an account:** paste a text, pick the source and target language, and click any word to see its translation in a popup. Different forms of a word (`went`, `going`) are reduced to one dictionary form.
-- **Personal vocabulary:** after logging in with GitHub, mark words as Unknown, Review or Known. The text is highlighted by status, and a stats bar shows how much of it you already know.
+- **Personal vocabulary:** after logging in with Google or GitHub, mark words as Unknown, Review or Known. The text is highlighted by status, and a stats bar shows how much of it you already know.
 - **Dictionaries:** a separate section lists your words per language pair and status, where you can change a status, delete a word or add all untracked words from the current text at once.
 - **Interface languages:** the interface is available in English, German and Ukrainian. It is switched at the bottom of the sidebar; the first visit follows the browser language and the choice is remembered.
 
@@ -62,6 +62,7 @@ Secrets are not committed to the repo. Provide them either as environment variab
 - `DB_URL`, `DB_USER`, `DB_PASSWORD` — PostgreSQL connection
 - `AZURE_TRANSLATOR_KEY`, `AZURE_TRANSLATOR_REGION` — Azure Translator
 - `GITHUB_CLIENT_ID`, `GITHUB_CLIENT_SECRET` — GitHub OAuth2 login
+- `GOOGLE_CLIENT_ID`, `GOOGLE_CLIENT_SECRET` — Google OpenID Connect login
 
 Tests need none of these: they run against an in-memory H2 database and a mocked Azure client.
 

@@ -1,5 +1,5 @@
 export type CurrentUser = {
-    login: string;
+    name: string;
     email: string | null;
     avatarUrl: string | null;
 };

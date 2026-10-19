@@ -49,15 +49,21 @@
         "saveStatus": "Couldn't save the status. Try again.",
         "saveStatuses": "Couldn't save the statuses. Try again.",
         "deleteStatus": "Couldn't remove the status. Try again.",
-        "deleteDictionary": "Couldn't delete the dictionary. Try again."
+        "deleteDictionary": "Couldn't delete the dictionary. Try again.",
+        "logout": "Couldn't log out. Try again."
     },
     "stats": {
         "hideHighlighting": "Hide highlighting of {{status}} words",
         "showHighlighting": "Show highlighting of {{status}} words"
     },
     "account": {
+        "logIn": "Log in",
         "continueWithGithub": "Continue with GitHub",
-        "greeting": "Hello, {{login}}"
+        "continueWithGoogle": "Continue with Google",
+        "logOut": "Log out",
+        "logOutTitle": "Log out?",
+        "logOutMessage": "You will be logged out of lexic.on.",
+        "greeting": "Hello, {{name}}"
     },
     "header": {
         "toggleMenu": "Toggle menu"

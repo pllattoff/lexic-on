@@ -63,6 +63,30 @@ class AppUserRepositoryTest {
     }
 
     @Test
+    void findByEmail_returnsUser_whenEmailMatches() {
+        // GIVEN
+        AppUser appUser = appUserRepository.saveAndFlush(new AppUser("test@example.com"));
+
+        // WHEN
+        Optional<AppUser> found = appUserRepository.findByEmail("test@example.com");
+
+        // THEN
+        assertThat(found).contains(appUser);
+    }
+
+    @Test
+    void findByEmail_returnsEmpty_whenNoUserHasEmail() {
+        // GIVEN
+        appUserRepository.saveAndFlush(new AppUser("test@example.com"));
+
+        // WHEN
+        Optional<AppUser> found = appUserRepository.findByEmail("other@example.com");
+
+        // THEN
+        assertThat(found).isEmpty();
+    }
+
+    @Test
     void save_setsRoleUserAndCreationTime_whenUserIsNew() {
         // WHEN
         AppUser saved = appUserRepository.saveAndFlush(new AppUser("test@example.com"));

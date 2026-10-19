@@ -14,7 +14,7 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 - Build: `./mvnw package`
 - Test: `./mvnw test`
 
-Local runs need a real Postgres (e.g. a free Neon project), Azure Translator and GitHub OAuth credentials — the required values are the placeholders in `application.properties`. Set them as environment variables, or in a gitignored `backend/src/main/resources/application-local.properties` (picked up automatically via `spring.config.import`; `application-local.properties.example` next to it is the committed template). Tests don't need any of this — they run the real Flyway migrations against an in-memory H2 database in PostgreSQL mode instead, and Azure requests are intercepted by `MockRestServiceServer` (`backend/src/test/resources/application.properties`). H2 is a stand-in until the project switches to Testcontainers with a real Postgres.
+Local runs need a real Postgres (e.g. a free Neon project), Azure Translator, GitHub OAuth and Google OAuth credentials — the required values are the placeholders in `application.properties`. Set them as environment variables, or in a gitignored `backend/src/main/resources/application-local.properties` (picked up automatically via `spring.config.import`; `application-local.properties.example` next to it is the committed template). Tests don't need any of this — they run the real Flyway migrations against an in-memory H2 database in PostgreSQL mode instead, and Azure requests are intercepted by `MockRestServiceServer` (`backend/src/test/resources/application.properties`). H2 is a stand-in until the project switches to Testcontainers with a real Postgres.
 
 ### Frontend (`frontend/`)
 

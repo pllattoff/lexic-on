@@ -5,4 +5,5 @@ export const REQUEST_ERRORS = {
     saveStatuses: "errors.saveStatuses",
     deleteStatus: "errors.deleteStatus",
     deleteDictionary: "errors.deleteDictionary",
+    logout: "errors.logout",
 };
