@@ -62,6 +62,7 @@ Secrets are not committed to the repo. Provide them either as environment variab
 - `DB_URL`, `DB_USER`, `DB_PASSWORD` — PostgreSQL connection
 - `AZURE_TRANSLATOR_KEY`, `AZURE_TRANSLATOR_REGION` — Azure Translator
 - `GITHUB_CLIENT_ID`, `GITHUB_CLIENT_SECRET` — GitHub OAuth2 login
+- `GOOGLE_CLIENT_ID`, `GOOGLE_CLIENT_SECRET` — Google OpenID Connect login
 
 Tests need none of these: they run against an in-memory H2 database and a mocked Azure client.
 

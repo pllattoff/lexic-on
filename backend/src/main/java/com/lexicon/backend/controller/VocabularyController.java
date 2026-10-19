@@ -6,7 +6,7 @@ import com.lexicon.backend.dto.DeleteVocabularyStatusRequest;
 import com.lexicon.backend.dto.SaveVocabularyStatusRequest;
 import com.lexicon.backend.dto.VocabularyStatusResponse;
 import com.lexicon.backend.enums.VocabularyStatus;
-import com.lexicon.backend.security.AppOAuth2User;
+import com.lexicon.backend.security.AppPrincipal;
 import com.lexicon.backend.service.VocabularyService;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
@@ -25,7 +25,7 @@ public class VocabularyController {
 
     @PutMapping
     public VocabularyStatusResponse saveStatus(// Get the authenticated user from Spring Security
-                                                @AuthenticationPrincipal AppOAuth2User user,
+                                                @AuthenticationPrincipal AppPrincipal user,
                                                 @Valid @RequestBody SaveVocabularyStatusRequest request) {
         VocabularyStatus status = vocabularyService.saveStatus(
                 user.getAppUserId(),
@@ -40,7 +40,7 @@ public class VocabularyController {
     // Assigns a vocabulary status to multiple lemmas at once.
     // Existing entries keep their current status; returns the lemmas that were added.
     @PostMapping("/lemmas/status")
-    public AssignedLemmasResponse assignStatusToLemmas(@AuthenticationPrincipal AppOAuth2User user,
+    public AssignedLemmasResponse assignStatusToLemmas(@AuthenticationPrincipal AppPrincipal user,
                                                        @Valid @RequestBody AssignStatusToLemmasRequest request) {
         List<String> assignedLemmas = vocabularyService.assignStatusToLemmas(
                 user.getAppUserId(),
@@ -54,7 +54,7 @@ public class VocabularyController {
 
     @DeleteMapping
     @ResponseStatus(HttpStatus.NO_CONTENT)
-    public void deleteStatus(@AuthenticationPrincipal AppOAuth2User user,
+    public void deleteStatus(@AuthenticationPrincipal AppPrincipal user,
                              @Valid @RequestBody DeleteVocabularyStatusRequest request) {
         vocabularyService.deleteStatus(
                 user.getAppUserId(),

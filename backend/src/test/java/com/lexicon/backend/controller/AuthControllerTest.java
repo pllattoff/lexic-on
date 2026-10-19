@@ -32,9 +32,9 @@ class AuthControllerTest {
 
         // WHEN
         mockMvc.perform(get("/api/auth/me").with(oauth2Login().oauth2User(user)))
-        // THEN the login and avatar come from GitHub, the email from our own AppUser
+        // THEN the name and avatar come from GitHub, the email from our own AppUser
                 .andExpect(status().isOk())
-                .andExpect(jsonPath("$.login").value("testuser"))
+                .andExpect(jsonPath("$.name").value("testuser"))
                 .andExpect(jsonPath("$.email").value("test@example.com"))
                 .andExpect(jsonPath("$.avatarUrl").value("https://avatars.example.com/testuser.png"));
     }

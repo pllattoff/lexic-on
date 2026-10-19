@@ -10,6 +10,9 @@ spring.datasource.password=<password>
 spring.security.oauth2.client.registration.github.client-id=<client-id>
 spring.security.oauth2.client.registration.github.client-secret=<client-secret>
 spring.security.oauth2.client.registration.github.scope=read:user,user:email
+spring.security.oauth2.client.registration.google.client-id=<client-id>
+spring.security.oauth2.client.registration.google.client-secret=<client-secret>
+spring.security.oauth2.client.registration.google.scope=openid,profile,email
 
 # Application
 frontend.url=http://localhost:5173

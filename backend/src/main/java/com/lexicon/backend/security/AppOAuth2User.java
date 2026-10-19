@@ -8,11 +8,11 @@ import org.springframework.security.oauth2.core.user.DefaultOAuth2User;
 import java.util.List;
 import java.util.Map;
 
-// Represents the authenticated user in Spring Security:
-// OAuth2 provider attributes combined with application-specific AppUser data.
+// Represents a user who signed in with GitHub in Spring Security:
+// GitHub attributes combined with application-specific AppUser data.
 // DefaultOAuth2User is Serializable, allowing the principal to be stored in the HTTP session.
 @Getter
-public class AppOAuth2User extends DefaultOAuth2User {
+public class AppOAuth2User extends DefaultOAuth2User implements AppPrincipal {
 
     private final Long appUserId;
     private final String email;
@@ -22,5 +22,15 @@ public class AppOAuth2User extends DefaultOAuth2User {
         super(List.of(new SimpleGrantedAuthority("ROLE_" + role.name())), attributes, "id");
         this.appUserId = appUserId;
         this.email = email;
+    }
+
+    @Override
+    public String getDisplayName() {
+        return getAttribute("login");
+    }
+
+    @Override
+    public String getAvatarUrl() {
+        return getAttribute("avatar_url");
     }
 }

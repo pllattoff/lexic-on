@@ -5,7 +5,7 @@ import com.lexicon.backend.dto.DictionaryWord;
 import com.lexicon.backend.enums.SourceLanguage;
 import com.lexicon.backend.enums.TargetLanguage;
 import com.lexicon.backend.enums.VocabularyStatus;
-import com.lexicon.backend.security.AppOAuth2User;
+import com.lexicon.backend.security.AppPrincipal;
 import com.lexicon.backend.service.DictionaryService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.HttpStatus;
@@ -28,13 +28,13 @@ public class DictionaryController {
     private final DictionaryService dictionaryService;
 
     @GetMapping
-    public List<DictionarySummary> getDictionaries(@AuthenticationPrincipal AppOAuth2User user) {
+    public List<DictionarySummary> getDictionaries(@AuthenticationPrincipal AppPrincipal user) {
         return dictionaryService.getDictionaries(user.getAppUserId());
     }
 
     // Language codes in path variables are converted to enums by converters registered in WebConfig
     @GetMapping("/{sourceLanguage}/{targetLanguage}/words")
-    public List<DictionaryWord> getWords(@AuthenticationPrincipal AppOAuth2User user,
+    public List<DictionaryWord> getWords(@AuthenticationPrincipal AppPrincipal user,
                                          @PathVariable SourceLanguage sourceLanguage,
                                          @PathVariable TargetLanguage targetLanguage,
                                          @RequestParam VocabularyStatus status) {
@@ -43,7 +43,7 @@ public class DictionaryController {
 
     @DeleteMapping("/{sourceLanguage}/{targetLanguage}")
     @ResponseStatus(HttpStatus.NO_CONTENT)
-    public void deleteDictionary(@AuthenticationPrincipal AppOAuth2User user,
+    public void deleteDictionary(@AuthenticationPrincipal AppPrincipal user,
                                  @PathVariable SourceLanguage sourceLanguage,
                                  @PathVariable TargetLanguage targetLanguage) {
         dictionaryService.deleteDictionary(user.getAppUserId(), sourceLanguage, targetLanguage);

@@ -1,6 +1,6 @@
 package com.lexicon.backend.controller;
 
-import com.lexicon.backend.security.AppOAuth2User;
+import com.lexicon.backend.security.AppPrincipal;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.RequestMapping;
@@ -11,15 +11,15 @@ import org.springframework.security.web.csrf.CsrfToken;
 @RequestMapping("/api/auth")
 public class AuthController {
 
-    record MeResponse(String login, String email, String avatarUrl) {}
+    record MeResponse(String name, String email, String avatarUrl) {}
 
-    // AppOAuth2User: Custom user combining OAuth2 provider attributes with application-specific user data
+    // AppPrincipal: the signed-in user, whichever provider (GitHub or Google) was used to sign in
     @GetMapping("/me")
-    public MeResponse getMe(@AuthenticationPrincipal AppOAuth2User user) {
+    public MeResponse getMe(@AuthenticationPrincipal AppPrincipal user) {
         return new MeResponse(
-                user.getAttribute("login"),
+                user.getDisplayName(),
                 user.getEmail(),
-                user.getAttribute("avatar_url"));
+                user.getAvatarUrl());
     }
 
     @GetMapping("/csrf")

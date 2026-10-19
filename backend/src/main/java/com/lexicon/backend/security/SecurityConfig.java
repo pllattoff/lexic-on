@@ -27,7 +27,9 @@ public class SecurityConfig {
     private String frontendUrl;
 
     @Bean
-    public SecurityFilterChain securityFilterChain(HttpSecurity http, CustomOAuth2UserService customOAuth2UserService) throws Exception {
+    public SecurityFilterChain securityFilterChain(HttpSecurity http,
+                                                   CustomOAuth2UserService customOAuth2UserService,
+                                                   CustomOidcUserService customOidcUserService) throws Exception {
         http
                 .csrf(csrf -> csrf
                         .csrfTokenRepository(CookieCsrfTokenRepository.withHttpOnlyFalse())
@@ -46,7 +48,10 @@ public class SecurityConfig {
                         .authenticationEntryPoint(new HttpStatusEntryPoint(HttpStatus.UNAUTHORIZED))
                 )
                 .oauth2Login(o -> o
-                        .userInfoEndpoint(userInfo -> userInfo.userService(customOAuth2UserService))
+                        // GitHub is a plain OAuth2 provider, Google an OpenID Connect one: each has its own user service
+                        .userInfoEndpoint(userInfo -> userInfo
+                                .userService(customOAuth2UserService)
+                                .oidcUserService(customOidcUserService))
                         .defaultSuccessUrl(frontendUrl, true))
                 .logout(logout -> logout.logoutSuccessUrl(frontendUrl));
 
